@@ -111,19 +111,29 @@ fun DashboardScreen(
             }
 
             // Offline warning banner
-            if (state.isOffline) {
+            if (state.isServingCache || state.isOffline) {
                 item {
-                    AwarespanOfflineBanner(modifier = Modifier.padding(horizontal = 16.dp))
+                    AwarespanOfflineBanner(
+                        message = "Connection unavailable — Showing cached data",
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                 }
             }
 
             // Health Status Surface
             item {
                 val healthColor = when (state.systemHealth) {
-                    "GREEN" -> StatusSafe
-                    "YELLOW" -> StatusWarning
-                    "RED" -> StatusCritical
+                    "NOMINAL", "GREEN" -> StatusSafe
+                    "ATTENTION", "YELLOW" -> StatusWarning
+                    "OFFLINE", "RED" -> StatusWarning
                     else -> SteelMid
+                }
+
+                val healthTitle = when (state.systemHealth) {
+                    "NOMINAL", "GREEN" -> "ALL SYSTEMS NOMINAL"
+                    "ATTENTION", "YELLOW" -> if (state.activeThreats > 0) "${state.activeThreats} ACTIVE THREATS REPORTED" else "ATTENTION REQUIRED"
+                    "OFFLINE" -> "CONNECTION UNAVAILABLE"
+                    else -> "STATUS UNKNOWN"
                 }
 
                 AwarespanCard(
@@ -148,7 +158,7 @@ fun DashboardScreen(
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = if (state.systemHealth == "GREEN") "ALL SYSTEMS NOMINAL" else "ATTENTION REQUIRED",
+                                text = healthTitle,
                                 fontFamily = FontFamilyDisplay,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Normal,
@@ -173,6 +183,12 @@ fun DashboardScreen(
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    val (nodeRatio, nodeSubtext, nodeSubColor) = when {
+                        state.totalNodes == 0 -> Triple("0", "NO NODES DETECTED", SteelMid)
+                        state.onlineNodes > 0 -> Triple("${state.onlineNodes} / ${state.totalNodes}", "${state.onlineNodes} ONLINE", StatusSafe)
+                        else -> Triple("0 / ${state.totalNodes}", "ALL NODES OFFLINE", StatusCritical)
+                    }
+
                     // Online Nodes Card
                     AwarespanCard(
                         modifier = Modifier.weight(1f),
@@ -189,17 +205,17 @@ fun DashboardScreen(
                             )
                             Spacer(Modifier.height(6.dp))
                             Text(
-                                text = "${state.onlineNodes} / ${state.totalNodes}",
+                                text = nodeRatio,
                                 fontFamily = FontFamilyDisplay,
                                 fontSize = 24.sp,
                                 color = BoneWhite,
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                text = "ONLINE // ACTIVE",
+                                text = nodeSubtext,
                                 fontFamily = FontFamilyMono,
                                 fontSize = 9.sp,
-                                color = StatusSafe,
+                                color = nodeSubColor,
                             )
                         }
                     }
@@ -227,7 +243,7 @@ fun DashboardScreen(
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                text = if (state.activeThreats > 0) "REQUIRES ACTION" else "ZERO ACTIVE",
+                                text = if (state.activeThreats > 0) "REQUIRES ACTION" else "NONE ACTIVE",
                                 fontFamily = FontFamilyMono,
                                 fontSize = 9.sp,
                                 color = if (state.activeThreats > 0) EmberOrange else SteelMid,
@@ -265,7 +281,7 @@ fun DashboardScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "ZERO INCIDENTS RECORDED",
+                                text = "NO RECENT INCIDENTS",
                                 fontFamily = FontFamilyMono,
                                 fontSize = 11.sp,
                                 letterSpacing = 0.8.sp,
@@ -273,7 +289,7 @@ fun DashboardScreen(
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = "Sector sensors report no active safety alerts.",
+                                text = "Edge node network reports no active security incidents.",
                                 fontFamily = FontFamilyDisplay,
                                 fontSize = 13.sp,
                                 color = FogLight,

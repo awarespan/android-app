@@ -9,7 +9,7 @@ import com.awarespan.guardian.data.local.entity.IncidentEntity;
 import com.awarespan.guardian.data.local.entity.NodeEntity;
 
 @Database(entities = {IncidentEntity.class, NodeEntity.class},
-          version = 2, exportSchema = false)
+          version = 3, exportSchema = false)
 public abstract class SipDatabase extends RoomDatabase {
     public abstract IncidentDao incidentDao();
     public abstract NodeDao nodeDao();

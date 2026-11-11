@@ -30,11 +30,20 @@ public class AppModule {
         }
     };
 
+    private static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE incidents ADD COLUMN sourceDeviceId TEXT");
+            database.execSQL("ALTER TABLE incidents ADD COLUMN sourceType TEXT");
+        }
+    };
+
     @Provides
     @Singleton
     SipDatabase provideDatabase(@ApplicationContext Context context) {
         return Room.databaseBuilder(context, SipDatabase.class, "sip.db")
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .fallbackToDestructiveMigration()
                 .build();
     }
 

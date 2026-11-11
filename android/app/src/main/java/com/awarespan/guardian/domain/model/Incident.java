@@ -19,6 +19,8 @@ public final class Incident {
     private final String nodeId;
     private final Instant timestamp;
     private final boolean autopilotHandled;
+    private final String sourceDeviceId;
+    private final String sourceType;
 
     private IncidentState state;
     private Instant updatedAt;
@@ -27,18 +29,29 @@ public final class Incident {
                     DetectionResult detectionResult, List<HumanAnnotation> humanAnnotations,
                     List<ResponseEvent> responseEvents, IncidentState state, String nodeId,
                     Instant timestamp, boolean autopilotHandled, Instant updatedAt) {
+        this(id, threat, location, evidenceBundle, detectionResult, humanAnnotations,
+                responseEvents, state, nodeId, timestamp, autopilotHandled, updatedAt, null, null);
+    }
+
+    public Incident(String id, Threat threat, Location location, EvidenceBundle evidenceBundle,
+                    DetectionResult detectionResult, List<HumanAnnotation> humanAnnotations,
+                    List<ResponseEvent> responseEvents, IncidentState state, String nodeId,
+                    Instant timestamp, boolean autopilotHandled, Instant updatedAt,
+                    String sourceDeviceId, String sourceType) {
         this.id = id;
         this.threat = threat;
         this.location = location;
         this.evidenceBundle = evidenceBundle;
         this.detectionResult = detectionResult;
-        this.humanAnnotations = List.copyOf(humanAnnotations);
-        this.responseEvents = List.copyOf(responseEvents);
+        this.humanAnnotations = humanAnnotations != null ? List.copyOf(humanAnnotations) : List.of();
+        this.responseEvents = responseEvents != null ? List.copyOf(responseEvents) : List.of();
         this.state = state;
         this.nodeId = nodeId;
         this.timestamp = timestamp;
         this.autopilotHandled = autopilotHandled;
         this.updatedAt = updatedAt;
+        this.sourceDeviceId = sourceDeviceId;
+        this.sourceType = sourceType;
     }
 
     public String getId() { return id; }
@@ -53,6 +66,8 @@ public final class Incident {
     public Instant getTimestamp() { return timestamp; }
     public boolean isAutopilotHandled() { return autopilotHandled; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public String getSourceDeviceId() { return sourceDeviceId; }
+    public String getSourceType() { return sourceType; }
 
     /**
      * Enforced state transition (plan §19). Throws on invalid transitions so the

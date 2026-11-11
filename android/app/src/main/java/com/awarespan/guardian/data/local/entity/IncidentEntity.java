@@ -23,6 +23,8 @@ public class IncidentEntity {
     public double longitude;
     public String locationReadable;
     public String nodeId;
+    public String sourceDeviceId;
+    public String sourceType;
     public boolean autopilotHandled;
     public long createdAtEpochMs;
     public long updatedAtEpochMs;

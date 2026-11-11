@@ -94,8 +94,8 @@ fun EventHistoryScreen(
 
             if (state.events.isEmpty()) {
                 AwarespanEmptyView(
-                    title = "EVENT STREAM IDLE",
-                    message = "Awaiting real-time WebSocket telemetry dispatches from edge nodes and backend controllers."
+                    title = "NO EVENT LOGS",
+                    message = "Awaiting real-time telemetry events from edge nodes."
                 )
             } else {
                 LazyColumn(
@@ -135,7 +135,7 @@ fun EventHistoryScreen(
                                     fontFamily = FontFamilyDisplay,
                                     fontSize = 14.sp,
                                     color = BoneWhite,
-                                )
+                                    )
 
                                 if (event.details.isNotBlank()) {
                                     Spacer(Modifier.height(2.dp))
@@ -151,7 +151,7 @@ fun EventHistoryScreen(
                     }
 
                     item {
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(24.dp))
                     }
                 }
             }

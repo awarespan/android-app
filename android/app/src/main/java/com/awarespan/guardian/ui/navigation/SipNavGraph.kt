@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -73,20 +76,25 @@ fun SipNavGraph(
         containerColor = VoidBlack,
         bottomBar = {
             if (isTopLevel) {
-                // Architectural sharp 0dp navigation bar
-                Column(
+                // Architectural sharp 0dp navigation bar extending under gesture handle
+                Surface(
+                    color = Carbon,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Carbon)
                         .border(1.dp, GraphiteBorder, RectangleShape)
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
+                            .navigationBarsPadding()
                     ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            horizontalArrangement = Arrangement.SpaceAround,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                         topLevelNavItems.forEach { item ->
                             val selected = currentRoute == item.destination.route
                             Column(
@@ -135,11 +143,14 @@ fun SipNavGraph(
                 }
             }
         }
-    ) { padding ->
+    }
+) { padding ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
         ) {
             // Authentication
             composable(AwarespanNavDestination.Login.route) {

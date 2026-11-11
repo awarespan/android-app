@@ -13,4 +13,6 @@ public class NodeDto {
     public Integer batteryLevel;
     public String firmwareVersion;
     public AutopilotPolicyDto autopilotPolicy;
+    @SerializedName("volunteerSources")
+    public java.util.List<VolunteerSourceDto> volunteerSources;
 }

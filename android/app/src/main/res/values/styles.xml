@@ -9,6 +9,4 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">#000000</item>
     </style>
-    <!-- Backwards compatible alias -->
-    <style name="Theme.SIPGuardian" parent="Theme.Awarespan" />
 </resources>

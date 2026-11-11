@@ -163,6 +163,7 @@ fun AwarespanErrorView(
 
 @Composable
 fun AwarespanOfflineBanner(
+    message: String = "Connection unavailable — Showing cached data",
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -181,7 +182,7 @@ fun AwarespanOfflineBanner(
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                text = "OFFLINE MODE — SERVING CACHED LOCAL TELEMETRY",
+                text = message.uppercase(),
                 fontFamily = FontFamilyMono,
                 fontSize = 10.sp,
                 letterSpacing = 0.5.sp,

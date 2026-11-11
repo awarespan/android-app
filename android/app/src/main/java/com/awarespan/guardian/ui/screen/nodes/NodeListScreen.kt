@@ -102,8 +102,8 @@ fun NodeListScreen(
                 }
                 state.nodes.isEmpty() -> {
                     AwarespanEmptyView(
-                        title = "ZERO REGISTERED NODES",
-                        message = "No edge camera/inference nodes reported in this sector."
+                        title = "NO EDGE NODES FOUND",
+                        message = "No edge nodes are currently registered in this network."
                     )
                 }
                 else -> {
@@ -117,7 +117,7 @@ fun NodeListScreen(
                             NodeCard(node = node, onClick = { onNodeClick(node.nodeId) })
                         }
                         item {
-                            Spacer(Modifier.height(16.dp))
+                            Spacer(Modifier.height(24.dp))
                         }
                     }
                 }
@@ -128,7 +128,8 @@ fun NodeListScreen(
 
 @Composable
 private fun NodeCard(node: Node, onClick: () -> Unit) {
-    val statusColor = when (node.status) {
+    val effectiveStatus = node.effectiveStatus
+    val statusColor = when (effectiveStatus) {
         NodeStatus.ONLINE -> NodeOnline
         NodeStatus.DEGRADED -> NodeDegraded
         NodeStatus.OFFLINE -> NodeOffline
@@ -152,7 +153,7 @@ private fun NodeCard(node: Node, onClick: () -> Unit) {
                     fontSize = 15.sp,
                     color = BoneWhite,
                 )
-                AwarespanBadge(text = node.status.name, color = statusColor)
+                AwarespanBadge(text = effectiveStatus.name, color = statusColor)
             }
 
             Spacer(Modifier.height(4.dp))

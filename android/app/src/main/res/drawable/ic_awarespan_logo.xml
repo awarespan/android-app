@@ -2,33 +2,39 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp"
     android:height="48dp"
-    android:viewportWidth="32"
-    android:viewportHeight="32">
-    <!-- Void Black background -->
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- Pure Void Black background -->
     <path
         android:fillColor="#000000"
-        android:pathData="M0,0h32v32h-32z" />
-    <!-- Shield body -->
+        android:pathData="M0,0h48v48h-48z" />
+
+    <!-- Sharp Graphite 1dp architectural frame -->
     <path
-        android:fillColor="#000000"
-        android:strokeColor="#DA5C2C"
+        android:strokeColor="#3C3C3C"
+        android:strokeWidth="1"
+        android:pathData="M8,8 L40,8 L40,40 L8,40 Z" />
+
+    <!-- Ember Orange corner brackets -->
+    <path
+        android:strokeColor="#FF4F2B"
         android:strokeWidth="1.5"
-        android:pathData="M16,2 L28,7 L28,16 C28,22 22,28 16,30 C10,28 4,22 4,16 L4,7 Z" />
-    <!-- Top triangle accent (shield top) -->
+        android:pathData="M8,14 L8,8 L14,8" />
     <path
-        android:fillColor="#DA5C2C"
-        android:fillAlpha="0.3"
-        android:pathData="M16,4 L25,8.5 L25,16 C25,20 21,25.5 16,27.2 Z" />
-    <!-- Alert / eye icon inside shield: outer circle -->
+        android:strokeColor="#FF4F2B"
+        android:strokeWidth="1.5"
+        android:pathData="M34,8 L40,8 L40,14" />
     <path
-        android:fillColor="#DA5C2C"
-        android:pathData="M9,15 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0" />
-    <!-- Alert / eye icon inside shield: middle circle -->
+        android:strokeColor="#FF4F2B"
+        android:strokeWidth="1.5"
+        android:pathData="M40,34 L40,40 L34,40" />
     <path
-        android:fillColor="#000000"
-        android:pathData="M12.5,15 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0" />
-    <!-- Alert / eye icon inside shield: inner core -->
+        android:strokeColor="#FF4F2B"
+        android:strokeWidth="1.5"
+        android:pathData="M14,40 L8,40 L8,34" />
+
+    <!-- Sharp geometric AWARESPAN core chevron -->
     <path
-        android:fillColor="#DA5C2C"
-        android:pathData="M14.5,15 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+        android:fillColor="#FF4F2B"
+        android:pathData="M24,14 L32,32 L27.5,32 L24,23 L20.5,32 L16,32 Z" />
 </vector>

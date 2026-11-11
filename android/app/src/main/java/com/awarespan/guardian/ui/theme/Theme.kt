@@ -52,12 +52,3 @@ fun AwarespanTheme(
         content = content,
     )
 }
-
-/** Backwards-compatible alias for existing callers */
-@Composable
-fun SIPGuardianTheme(
-    darkTheme: Boolean = true,
-    content: @Composable () -> Unit,
-) {
-    AwarespanTheme(content = content)
-}

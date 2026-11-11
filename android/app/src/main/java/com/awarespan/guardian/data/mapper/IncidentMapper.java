@@ -92,12 +92,15 @@ public class IncidentMapper {
 
         return new Incident(dto.id, threat, location, evidence, detection, annotations, responses,
                 safeEnum(IncidentState.class, dto.state, IncidentState.DETECTED),
-                dto.nodeId, parseInstant(dto.createdAt), dto.autopilotHandled, parseInstant(dto.updatedAt));
+                dto.nodeId, parseInstant(dto.createdAt), dto.autopilotHandled, parseInstant(dto.updatedAt),
+                dto.sourceDeviceId, dto.sourceType);
     }
 
     public IncidentEntity toEntity(IncidentDto dto) {
         IncidentEntity e = new IncidentEntity();
         e.id = dto.id;
+        e.sourceDeviceId = dto.sourceDeviceId;
+        e.sourceType = dto.sourceType;
         e.state = dto.state;
         e.threatType = dto.threat != null ? dto.threat.type : dto.threatType;
         e.threatSeverity = dto.threat != null ? dto.threat.severity : dto.threatSeverity;
@@ -141,6 +144,8 @@ public class IncidentMapper {
         dto.longitude = e.longitude;
         dto.locationReadable = e.locationReadable;
         dto.nodeId = e.nodeId;
+        dto.sourceDeviceId = e.sourceDeviceId;
+        dto.sourceType = e.sourceType;
         dto.autopilotHandled = e.autopilotHandled;
         dto.createdAt = Instant.ofEpochMilli(e.createdAtEpochMs).toString();
         dto.updatedAt = Instant.ofEpochMilli(e.updatedAtEpochMs).toString();
@@ -159,7 +164,7 @@ public class IncidentMapper {
 
     private static String safe(String value) { return value == null ? "" : value; }
 
-    static Instant parseInstant(String iso) {
+    public static Instant parseInstant(String iso) {
         if (iso == null || iso.isEmpty()) return null;
         try { return Instant.parse(iso); }
         catch (Exception ex) {
@@ -168,7 +173,7 @@ public class IncidentMapper {
         }
     }
 
-    static long toEpochMs(String iso) {
+    public static long toEpochMs(String iso) {
         Instant i = parseInstant(iso);
         return i == null ? 0 : i.toEpochMilli();
     }

@@ -85,4 +85,24 @@ public class IncidentMapperTest {
         assertTrue(restored.responseEvents.get(0).autonomous);
     }
 
+    @Test
+    public void mapsVolunteerSourceFields() {
+        IncidentDto dto = new IncidentDto();
+        dto.id = "incident-volunteer";
+        dto.sourceDeviceId = "cam-volunteer-01";
+        dto.sourceType = "CAMERA";
+
+        IncidentMapper mapper = new IncidentMapper();
+        var entity = mapper.toEntity(dto);
+        assertEquals("cam-volunteer-01", entity.sourceDeviceId);
+        assertEquals("CAMERA", entity.sourceType);
+
+        var domain = mapper.toDomain(dto);
+        assertEquals("cam-volunteer-01", domain.getSourceDeviceId());
+        assertEquals("CAMERA", domain.getSourceType());
+
+        var backToDto = mapper.toDto(entity);
+        assertEquals("cam-volunteer-01", backToDto.sourceDeviceId);
+        assertEquals("CAMERA", backToDto.sourceType);
+    }
 }

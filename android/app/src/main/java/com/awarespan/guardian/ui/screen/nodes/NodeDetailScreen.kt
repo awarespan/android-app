@@ -88,7 +88,8 @@ fun NodeDetailScreen(
             if (node == null) {
                 AwarespanLoadingView(message = "READING NODE REGISTRY…")
             } else {
-                val statusColor = when (node.status) {
+                val effectiveStatus = node.effectiveStatus
+                val statusColor = when (effectiveStatus) {
                     NodeStatus.ONLINE -> NodeOnline
                     NodeStatus.DEGRADED -> NodeDegraded
                     NodeStatus.OFFLINE -> NodeOffline
@@ -109,7 +110,7 @@ fun NodeDetailScreen(
                                 fontSize = 20.sp,
                                 color = BoneWhite,
                             )
-                            AwarespanBadge(text = node.status.name, color = statusColor)
+                            AwarespanBadge(text = effectiveStatus.name, color = statusColor)
                         }
 
                         Spacer(Modifier.height(6.dp))
@@ -224,6 +225,68 @@ fun NodeDetailScreen(
                     }
                 }
 
+                // Volunteer Camera & Microphone Sources
+                AwarespanCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        val sources = node.volunteerSources
+                        Text(
+                            text = if (sources.isNotEmpty()) "CONNECTED VOLUNTEER DEVICES (${sources.size})" else "VOLUNTEER INPUT SOURCES",
+                            fontFamily = FontFamilyMono,
+                            fontSize = 11.sp,
+                            letterSpacing = 0.8.sp,
+                            color = SteelMid,
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        if (sources.isNotEmpty()) {
+                            Text(
+                                text = "Volunteered devices stream sensor/video telemetry to this edge node for local threat inference.",
+                                fontFamily = FontFamilyDisplay,
+                                fontSize = 12.sp,
+                                color = FogLight,
+                            )
+                            Spacer(Modifier.height(10.dp))
+                            sources.forEach { source ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = source.deviceName,
+                                            fontFamily = FontFamilyDisplay,
+                                            fontSize = 13.sp,
+                                            color = BoneWhite,
+                                        )
+                                        Text(
+                                            text = "MODEL: ${source.deviceModel.ifBlank { "GENERIC" }} // ID: ${source.sourceId}",
+                                            fontFamily = FontFamilyMono,
+                                            fontSize = 9.sp,
+                                            color = SteelMid,
+                                        )
+                                    }
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        AwarespanBadge(text = source.sourceType.name, color = SteelMid)
+                                        AwarespanBadge(
+                                            text = source.status.name,
+                                            color = if (source.isActive) NodeOnline else NodeOffline
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "No external camera or microphone volunteer devices are currently streaming to this edge node.",
+                                fontFamily = FontFamilyDisplay,
+                                fontSize = 12.sp,
+                                color = FogLight,
+                            )
+                        }
+                    }
+                }
+
                 // Autopilot Policy Quick Action
                 AwarespanCard(modifier = Modifier.fillMaxWidth()) {
                     Column {
@@ -250,6 +313,8 @@ fun NodeDetailScreen(
                         )
                     }
                 }
+
+                Spacer(Modifier.height(32.dp))
             }
         }
     }

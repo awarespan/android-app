@@ -110,25 +110,17 @@ fun IncidentFeedScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val filterStates = listOf<Pair<String, IncidentState?>>(
-                "ALL" to null,
-                "PENDING" to IncidentState.PENDING_VERIFICATION,
-                "VERIFIED" to IncidentState.VERIFIED,
-                "REJECTED" to IncidentState.REJECTED,
-                "ESCALATED" to IncidentState.ESCALATED,
-            )
-
-            filterStates.forEach { (label, incidentState) ->
-                val selected = state.stateFilter == incidentState
+            FeedFilterCategory.values().forEach { category ->
+                val selected = state.filterCategory == category
                 Box(
                     modifier = Modifier
                         .background(if (selected) EmberOrange else Carbon, RectangleShape)
                         .border(1.dp, if (selected) EmberOrange else GraphiteBorder, RectangleShape)
-                        .clickable { viewModel.setStateFilter(incidentState) }
+                        .clickable { viewModel.setFilterCategory(category) }
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = label,
+                        text = category.label,
                         fontFamily = FontFamilyMono,
                         fontSize = 11.sp,
                         letterSpacing = 0.6.sp,
@@ -138,8 +130,11 @@ fun IncidentFeedScreen(
             }
         }
 
-        if (state.offline) {
-            AwarespanOfflineBanner(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+        if ((state.isServingCache || state.isOffline) && state.filteredIncidents.isNotEmpty()) {
+            AwarespanOfflineBanner(
+                message = "Connection unavailable — Showing cached data",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
         }
 
         // Incident Stream
@@ -147,10 +142,16 @@ fun IncidentFeedScreen(
             state.loading && state.filteredIncidents.isEmpty() -> {
                 AwarespanLoadingView(message = "STREAMING INCIDENTS…")
             }
+            state.filteredIncidents.isEmpty() && (state.isServingCache || state.isOffline) -> {
+                AwarespanEmptyView(
+                    title = "NO CACHED INCIDENTS",
+                    message = "Connection unavailable and no local incident records were found."
+                )
+            }
             state.filteredIncidents.isEmpty() -> {
                 AwarespanEmptyView(
-                    title = "ZERO MATCHING INCIDENTS",
-                    message = "No telemetry reports match the current filter parameters."
+                    title = "NO INCIDENTS FOUND",
+                    message = "No detection events match the current filter parameters."
                 )
             }
             else -> {
@@ -165,7 +166,7 @@ fun IncidentFeedScreen(
                         )
                     }
                     item {
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(24.dp))
                     }
                 }
             }

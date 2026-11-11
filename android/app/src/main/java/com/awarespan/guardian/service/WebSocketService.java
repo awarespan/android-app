@@ -1,19 +1,10 @@
 package com.awarespan.guardian.service;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
-import android.content.pm.ServiceInfo;
-import android.os.Build;
 import android.os.IBinder;
 
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.ServiceCompat;
-
 import com.awarespan.guardian.BuildConfig;
-import com.awarespan.guardian.R;
 import com.awarespan.guardian.data.local.dao.IncidentDao;
 import com.awarespan.guardian.data.mapper.IncidentMapper;
 import com.awarespan.guardian.data.remote.websocket.SipWebSocketClient;
@@ -24,15 +15,11 @@ import javax.inject.Inject;
 import dagger.hilt.android.AndroidEntryPoint;
 
 /**
- * Foreground service holding the authenticated WebSocket while the app is active
- * and for a bounded period after backgrounding. Missed events are reconciled via
- * REST when the app resumes.
+ * Background event service. No permanent foreground notification is displayed.
  */
 @AndroidEntryPoint
 public class WebSocketService extends Service {
 
-    public static final String CHANNEL_ID = "awarespan_events";
-    private static final int NOTIFICATION_ID = 1;
     public static final String EXTRA_BASE_URL = "base_url";
 
     @Inject SipWebSocketClient webSocketClient;
@@ -54,7 +41,6 @@ public class WebSocketService extends Service {
                         e.incident.id, threatType, description);
             } else if (event instanceof WebSocketEvent.OnIncidentUpdated) {
                 WebSocketEvent.OnIncidentUpdated e = (WebSocketEvent.OnIncidentUpdated) event;
-                // The backend sends the full canonical DTO; update Room so observers see the change.
                 if (e.incident != null && e.incident.id != null) {
                     incidentDao.upsert(incidentMapper.toEntity(e.incident));
                 }
@@ -69,19 +55,8 @@ public class WebSocketService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        createChannel();
+        NotificationService.ensureChannels(this);
         webSocketClient.addListener(listener);
-
-        Notification notification = buildForegroundNotification("Monitoring…");
-        int foregroundType = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-                ? ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                : 0;
-        ServiceCompat.startForeground(
-                this,
-                NOTIFICATION_ID,
-                notification,
-                foregroundType
-        );
     }
 
     @Override
@@ -93,7 +68,7 @@ public class WebSocketService extends Service {
         if (baseUrl != null && !baseUrl.trim().isEmpty()) {
             webSocketClient.connect(baseUrl);
         }
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
@@ -104,35 +79,7 @@ public class WebSocketService extends Service {
     }
 
     @Override
-    public void onTimeout(int startId, int fgsType) {
-        // Android 15 limits dataSync foreground-service runtime.
-        stopSelf(startId);
-    }
-
-    @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    private Notification buildForegroundNotification(String text) {
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("AWARESPAN")
-                .setContentText(text)
-                .setOngoing(true)
-                .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .build();
-    }
-
-    private void createChannel() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
-        NotificationManager nm = getSystemService(NotificationManager.class);
-        if (nm != null) {
-            nm.createNotificationChannel(new NotificationChannel(
-                    CHANNEL_ID,
-                    "Incidents",
-                    NotificationManager.IMPORTANCE_HIGH
-            ));
-        }
     }
 }

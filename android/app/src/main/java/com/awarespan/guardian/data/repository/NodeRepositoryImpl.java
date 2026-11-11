@@ -82,10 +82,25 @@ public class NodeRepositoryImpl implements NodeRepository {
     }
 
     private Node toDomain(NodeDto dto) {
+        List<com.awarespan.guardian.domain.model.VolunteerSource> sources = new ArrayList<>();
+        if (dto.volunteerSources != null) {
+            for (com.awarespan.guardian.data.remote.dto.VolunteerSourceDto s : dto.volunteerSources) {
+                if (s == null) continue;
+                sources.add(new com.awarespan.guardian.domain.model.VolunteerSource(
+                        s.sourceId,
+                        s.deviceName,
+                        com.awarespan.guardian.domain.model.VolunteerSource.SourceType.fromString(s.sourceType),
+                        com.awarespan.guardian.domain.model.VolunteerSource.SourceStatus.fromString(s.status),
+                        s.deviceModel,
+                        parseInstant(s.lastSeen)
+                ));
+            }
+        }
         return new Node(dto.nodeId, dto.name,
                 new Location(dto.latitude, dto.longitude, "", 0),
                 safeStatus(dto.status), parseInstant(dto.lastHeartbeat),
-                dto.batteryLevel, dto.firmwareVersion, AutopilotPolicy.disabled());
+                dto.batteryLevel, dto.firmwareVersion, AutopilotPolicy.disabled(),
+                sources);
     }
 
     private static Instant parseInstant(String value) {

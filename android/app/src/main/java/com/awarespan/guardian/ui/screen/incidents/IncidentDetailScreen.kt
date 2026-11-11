@@ -211,6 +211,16 @@ fun IncidentDetailScreen(
                                         color = SteelMid,
                                     )
                                 }
+
+                                if (!incident.sourceDeviceId.isNullOrBlank()) {
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        text = "VOLUNTEER SOURCE: [${incident.sourceType ?: "SENSOR"}] ${incident.sourceDeviceId}",
+                                        fontFamily = FontFamilyMono,
+                                        fontSize = 10.sp,
+                                        color = SteelMid,
+                                    )
+                                }
                             }
                         }
                     }
@@ -436,7 +446,7 @@ fun IncidentDetailScreen(
                         AwarespanErrorView(error = it)
                     }
 
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(36.dp))
                 }
             }
         }

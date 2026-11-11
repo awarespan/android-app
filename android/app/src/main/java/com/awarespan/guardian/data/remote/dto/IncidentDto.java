@@ -26,6 +26,8 @@ public class IncidentDto {
     public List<ResponseEventDto> responseEvents;
     public DetailDto detail;
     public String nodeId;
+    public String sourceDeviceId;
+    public String sourceType;
     @SerializedName(value = "created_at", alternate = {"createdAt"}) public String createdAt;
     @SerializedName(value = "updated_at", alternate = {"updatedAt"}) public String updatedAt;
     public boolean autopilotHandled;
