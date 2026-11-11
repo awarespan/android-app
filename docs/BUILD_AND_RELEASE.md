@@ -11,10 +11,10 @@
 - **Operating System**: Linux (Ubuntu 22.04+ recommended) or macOS / Windows with WSL2.
 - **Java Development Kit**: OpenJDK 17 (e.g., Eclipse Temurin 17.0.12+).
 - **Android SDK**:
-  - `compileSdk`: 34
-  - `targetSdk`: 34
+  - `compileSdk`: 35
+  - `targetSdk`: 35
   - `minSdk`: 26 (Android 8.0 Oreo)
-  - `buildToolsVersion`: 34.0.0
+  - `buildToolsVersion`: 35.0.0
 - **Gradle**: 8.9 (managed via the included `android/gradlew` wrapper).
 
 ---

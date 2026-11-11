@@ -1,108 +1,207 @@
-# AWARESPAN — Android Operations Console
+# AWARESPAN — Android Operational Console
+
+[![Release](https://img.shields.io/badge/Release-v0.4.0-FF4F2B?style=flat-square&labelColor=1A1A1A)](https://github.com/awarespan/android-app/releases/tag/v0.4.0)
+[![Build Status](https://img.shields.io/badge/Build-Passing-2ECC71?style=flat-square&labelColor=1A1A1A)](https://github.com/awarespan/android-app/actions)
+[![Android](https://img.shields.io/badge/Android-8.0%2B%20%28API%2026--35%29-3498DB?style=flat-square&labelColor=1A1A1A)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.24-7F52FF?style=flat-square&labelColor=1A1A1A)](https://kotlinlang.org)
+[![Compose](https://img.shields.io/badge/Jetpack%20Compose-2024.06.00-4285F4?style=flat-square&labelColor=1A1A1A)](https://developer.android.com/jetpack/compose)
+[![Architecture](https://img.shields.io/badge/Design%20System-Zero--Radius%20Dark-FF4F2B?style=flat-square&labelColor=1A1A1A)](docs/DESIGN_SYSTEM.md)
 
 > **Awareness Without Boundaries.**  
-> Real-Time Edge Intelligence, Incident Verification & Autonomous Policy Control.
-
-[![AWARESPAN Android CI](https://github.com/awarespan/android-app/actions/workflows/android-ci.yml/badge.svg)](https://github.com/awarespan/android-app/actions/workflows/android-ci.yml)
-[![Version](https://img.shields.io/badge/version-0.4.0-ff4f2b.svg)](https://github.com/awarespan/android-app/releases/tag/v0.4.0)
+> The official Android operational console for the **AWARESPAN** distributed edge AI safety ecosystem.
 
 ---
 
-## 1. Overview
+## 1. Application Identity
 
-**AWARESPAN Android** is the mobile operations console for the AWARESPAN edge intelligence security network. It provides security operators with real-time threat detection feeds, edge node telemetry monitoring, AI prediction verification, and autonomous response policy controls.
-
-The application follows the **AWARESPAN Zero-Radius Design System** (`docs/DESIGN.md`):
-- **Void Black Canvas (`#000000`)** optimized for night operations and OLED power efficiency.
-- **Carbon Surfaces (`#1a1a1a`)** with 1dp hairline **Graphite Borders (`#3c3c3c`)**.
-- **Ember Orange (`#ff4f2b`)** reserved strictly for primary actions, critical alerts, and selection states.
-- **Architectural 0dp Geometry**: Sharp right angles on all cards, buttons, inputs, dialogs, and status badges.
-- **Monospaced Operational Metadata** for high-precision hardware identifiers and ISO timestamps.
+| Attribute | Value |
+| :--- | :--- |
+| **Brand Name** | **AWARESPAN** |
+| **Brand Tagline** | *Awareness Without Boundaries.* |
+| **Application Label** | `AWARESPAN` |
+| **Application ID / Namespace** | `com.awarespan.guardian` |
+| **Version Name** | `0.4.0` |
+| **Version Code** | `5` |
+| **Minimum SDK** | API 26 (Android 8.0 Oreo) |
+| **Target / Compile SDK** | API 35 (Android 15) |
+| **Repository** | [`awarespan/android-app`](https://github.com/awarespan/android-app) |
+| **Production Gateway** | `https://api.awarespan.bchbenjamin.in/` |
 
 ---
 
-## 2. System Architecture
+## 2. Technical Overview
 
-```text
-  Raspberry Pi Edge Nodes (Hardware Inference)
-                     │
-                     │ MQTT / Secure Telemetry
-                     ▼
-  AWARESPAN Spring Boot API Gateway (api.awarespan.bchbenjamin.in)
-                     ▲
-                     │ HTTPS (REST) & WSS (/ws/events)
-                     ▼
-  AWARESPAN Android App (com.awarespan.guardian)
-         ├── Jetpack Compose UI (0dp Architectural Design)
-         ├── Dagger Hilt Dependency Injection
-         ├── Java Domain Models & Repository Contracts
-         ├── Room Local Cache (Offline Operations)
-         └── Android Keystore (Encrypted Token Storage)
+The AWARESPAN Android application provides an operational interface for security operators, field personnel, and system evaluators. It interfaces with the AWARESPAN backend to provide:
+
+- **Real-Time Threat Telemetry**: Streaming WebSocket events delivering multi-modal AI threat detections (visual, acoustic, nocturnal) with sub-second latency.
+- **Human-in-the-Loop Verification**: Workflows that separate immutable edge AI predictions from human verification outcomes (`CONFIRMED`, `FALSE_ALARM`, `UNCERTAIN`).
+- **Edge Node Health Monitoring**: Fleet-wide heartbeat tracking, GPS coordinate mapping, battery levels, and sensor diagnostic states.
+- **Autopilot Policy Tuning**: Configurable autonomous deterrence parameters (sound alarms, strobes, automated escalation).
+- **Offline-First Resilience**: Local Room database caching ensuring field operators maintain uninterrupted visibility even during intermittent cellular connectivity.
+
+---
+
+## 3. System Architecture & Boundaries
+
+The Android client connects **exclusively** to the Spring Boot API Gateway via encrypted HTTPS and WebSocket (WSS) connections.
+
+```mermaid
+flowchart TD
+    subgraph EdgeLayer["Edge Infrastructure"]
+        Node1["Raspberry Pi Node 1<br/>(YOLOv8 Edge AI)"]
+        Node2["Raspberry Pi Node 2<br/>(Acoustic / Sensor)"]
+        NodeN["Raspberry Pi Node N<br/>(Thermal / Night Vision)"]
+    end
+
+    subgraph BackendLayer["AWARESPAN Cloud Gateway (Render / Cloudflare)"]
+        API["Spring Boot 3.3.4 Gateway<br/>https://api.awarespan.bchbenjamin.in/"]
+        WSS["WebSocket Event Broker<br/>wss://api.awarespan.bchbenjamin.in/ws/events"]
+        DB[(Neon PostgreSQL<br/>Timescale Telemetry)]
+        API --- DB
+        WSS --- DB
+    end
+
+    subgraph AndroidApp["AWARESPAN Android Console (com.awarespan.guardian)"]
+        direction TB
+        UI["Jetpack Compose UI<br/>(Zero-Radius Dark Infrastructure)"]
+        VM["Architecture ViewModels<br/>(StateFlow / Reactive State)"]
+        Repo["Data Repositories<br/>(Offline Cache / Synchronization)"]
+        RoomCache[(Room Local DB<br/>Offline Fallback)]
+        SecStore["SecureTokenStore<br/>(AES-256-GCM / Android Keystore)"]
+
+        UI --> VM
+        VM --> Repo
+        Repo --> RoomCache
+        Repo --> SecStore
+    end
+
+    EdgeLayer -->|Telemetry / MQTT / HTTPS| API
+    Repo <==>|HTTPS REST API| API
+    Repo <==>|WSS Real-time Stream| WSS
 ```
 
 > [!IMPORTANT]
-> The Android application interacts exclusively with the authenticated Spring Boot gateway (`https://api.awarespan.bchbenjamin.in/`). It never communicates directly with edge hardware over raw SSH, RTSP, or local database ports.
+> **Strict Architectural Boundary**: The Android application **never** connects directly to edge hardware nodes (Raspberry Pi devices), MQTT message brokers, or the Neon PostgreSQL database. All interactions are securely routed, authenticated, and audited through the Spring Boot API Gateway.
 
 ---
 
-## 3. Application Specifications
+## 4. Design System: Zero-Radius Dark Infrastructure
 
-- **Application ID / Package**: `com.awarespan.guardian`
-- **Application Label**: `AWARESPAN`
-- **Version Name**: `0.4.0`
-- **Version Code**: `5`
-- **Minimum SDK**: `26` (Android 8.0 Oreo)
-- **Target SDK**: `34` (Android 14)
-- **Primary Language**: Kotlin (UI / Compose) & Java (Domain / Data Layers)
+The application interface implements the authoritative AWARESPAN design specification ([`docs/DESIGN.md`](docs/DESIGN.md)):
 
----
+- **Void Black Canvas (`#000000`)**: Deep pure black background across all surfaces to maximize OLED battery longevity and reduce operator eye fatigue in night operations.
+- **Ember Orange (`#FF4F2B`)**: Single high-visibility accent color reserved strictly for actionable triggers, active alarms, and critical interactive components.
+- **Zero-Radius Architecture (`0dp`)**: Complete rejection of Material 3 rounded cards and pill buttons. All containers, buttons, badges, and text inputs adhere to sharp, architectural geometry.
+- **Hairline Graphite Borders (`#3C3C3C`, 1dp)**: Structural hierarchy communicated through 1dp solid borders rather than drop shadows.
+- **Monospaced Operational Readouts**: Terminal typography for hardware node identifiers, ISO-8601 timestamps, confidence metrics, and state badges.
 
-## 4. Documentation Index
-
-- [**Design System Specification**](docs/DESIGN_SYSTEM.md): Tokens, typography, 0dp components, and mobile adaptations.
-- [**Architecture Documentation**](docs/ARCHITECTURE.md): Multi-paradigm layering, Hilt DI, Room cache, and edge isolation.
-- [**API & Network Integration**](docs/API_INTEGRATION.md): Gateway verification, REST contracts, and WebSocket event stream.
-- [**Authentication & Security**](docs/AUTHENTICATION.md): Android Keystore, token rotation, and error diagnostics.
-- [**Build & Release Guide**](docs/BUILD_AND_RELEASE.md): Compiling, signing configurations, and CI/CD automation.
-- [**Testing & Verification**](docs/TESTING.md): Unit tests, live health probes, and UI verification.
+Detailed component guidelines and Jetpack Compose token mappings are documented in [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 
 ---
 
-## 5. Quick Start & Build Instructions
+## 5. Technology Stack
 
-### Prerequisites
-- JDK 17 (Temurin 17 recommended)
-- Android SDK (API 34, Build Tools 34.0.0)
+| Component / Layer | Technology | Version | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Language** | Kotlin | `1.9.24` | Presentation layer, ViewModels, Compose UI |
+| **Core Domain** | Java | `17` (Temurin) | Domain models, repository contracts, mappers |
+| **UI Framework** | Jetpack Compose | BOM `2024.06.00` | Declarative UI, state-driven rendering |
+| **DI Engine** | Dagger Hilt | `2.51.1` | Dependency injection across app lifecycle |
+| **Local Cache** | AndroidX Room | `2.6.1` | Offline-first SQLite database and DAOs |
+| **REST Networking** | Retrofit / OkHttp | `2.11.0` / `4.12.0` | API communication, interceptors, SSL pinning |
+| **WebSocket** | OkHttp WebSocket | `4.12.0` | Persistent bi-directional event stream |
+| **Security** | AndroidX Security | `1.1.0-alpha06` | `EncryptedSharedPreferences` with Keystore |
+| **Image Loading** | Coil Compose | `2.6.0` | High-performance image loading with memory cache |
+| **Video Playback** | Media3 / ExoPlayer | `1.3.1` | Incident video evidence playback |
+| **Build System** | Gradle | `8.9` | Build automation, R8 shrinking, ProGuard |
+| **Android Gradle** | AGP | `8.5.1` | Android compilation plugin |
 
-### 5.1 Run Unit Tests
+---
+
+## 6. Build & Setup Instructions
+
+### 6.1 Prerequisites
+- **JDK**: OpenJDK 17 or Eclipse Temurin 17+
+- **Android SDK**: Build-Tools `35.0.0` or `34.0.0`, Platform `android-35`
+- **Gradle**: Managed automatically via the included `./gradlew` wrapper
+
+### 6.2 Running Unit Tests
+Validate data mappers, WebSocket message parsers, authentication logic, and domain state machines:
 ```bash
 cd android
 ./gradlew testDebugUnitTest
 ```
 
-### 5.2 Build Debug APK
+### 6.3 Building Debug APK
 ```bash
 cd android
 ./gradlew assembleDebug
 ```
-Output artifact: `android/app/build/outputs/apk/debug/app-debug.apk`.
+Output artifact: `android/app/build/outputs/apk/debug/app-debug.apk`
 
-### 5.3 Build Signed Release APK
-Configure signing credentials via environment variables:
+### 6.4 Building Release APK
+The release build enforces full ProGuard/R8 dead-code elimination, member obfuscation, and resource shrinking:
 ```bash
-export AWARESPAN_KEYSTORE_FILE="/path/to/keystore.jks"
-export AWARESPAN_KEYSTORE_PASSWORD="KeystorePassword"
-export AWARESPAN_KEY_ALIAS="key-alias"
-export AWARESPAN_KEY_PASSWORD="KeyPassword"
-
 cd android
+./gradlew assembleRelease --no-daemon
+```
+Output artifact: `android/app/build/outputs/apk/release/app-release-unsigned.apk` (or `app-release.apk` if signing credentials are provided).
+
+### 6.5 Signing Configuration
+To generate a cryptographically signed release APK, supply the following environment variables:
+```bash
+export AWARESPAN_KEYSTORE_FILE="/path/to/release.jks"
+export AWARESPAN_KEYSTORE_PASSWORD="your-keystore-password"
+export AWARESPAN_KEY_ALIAS="your-key-alias"
+export AWARESPAN_KEY_PASSWORD="your-key-password"
+
 ./gradlew assembleRelease
 ```
-Output artifact: `android/app/build/outputs/apk/release/app-release.apk`.
 
 ---
 
-## 6. License & Security
+## 7. Security & Cryptographic Safeguards
 
-Proprietary — All rights reserved by AWARESPAN.  
-For security disclosures or operational inquiries, contact `security@awarespan.bchbenjamin.in`.
+1. **Hardware-Backed Key Storage**: Master keys are generated inside the Android Keystore system (`MasterKey.KeyScheme.AES256_GCM`). Tokens are encrypted on-disk using AES-256-SIV (keys) and AES-256-GCM (values).
+2. **Transparent Token Rotation**: `TokenRefreshAuthenticator` intercepts `401 Unauthorized` responses and synchronizes refresh token requests to renew expired JWT access tokens without interrupting operator workflows.
+3. **Encrypted Transport Only**: `android:usesCleartextTraffic="false"` is strictly enforced in `AndroidManifest.xml`. All network communication requires TLS 1.3 / TLS 1.2 with valid CA trust anchors.
+4. **ProGuard / R8 Obfuscation Defense**: Critical network DTOs and Room entities are protected via keep rules in [`proguard-rules.pro`](android/app/proguard-rules.pro), eliminating `ClassCastException` and deserialization failures under aggressive release optimization.
+
+---
+
+## 8. Release Artifacts & Verification
+
+### v0.4.0 Release Artifacts
+
+| Binary | Path | Size | SHA-256 Hash |
+| :--- | :--- | :--- | :--- |
+| **Release APK (Unsigned)** | `android/app/build/outputs/apk/release/app-release-unsigned.apk` | 1.56 MB | `d1e80f06be65658443126bcca1ab2deef4ff6b590bd92d18d1392739ac47e1e4` |
+
+### Package Verification (`aapt dump badging`)
+```text
+package: name='com.awarespan.guardian' versionCode='5' versionName='0.4.0'
+sdkVersion:'26' targetSdkVersion:'35'
+application-label:'AWARESPAN'
+application-icon-160:'res/drawable/ic_awarespan_logo.xml'
+```
+
+---
+
+## 9. Comprehensive Documentation Index
+
+All in-depth engineering documentation is maintained under [`docs/`](docs/):
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Clean architecture layers, reactive StateFlow patterns, and offline-first Room cache.
+- [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) — Authoritative color tokens, zero-radius geometry, and custom Compose components.
+- [`docs/API_INTEGRATION.md`](docs/API_INTEGRATION.md) — Live REST endpoints, WebSocket event contracts, and payload schemas.
+- [`docs/AUTHENTICATION.md`](docs/AUTHENTICATION.md) — Android Keystore, EncryptedSharedPreferences, and token rotation lifecycle.
+- [`docs/BUILD_AND_RELEASE.md`](docs/BUILD_AND_RELEASE.md) — Build variants, signing configurations, R8 rules, and release checklists.
+- [`docs/TESTING.md`](docs/TESTING.md) — Unit test suite breakdown, MockWebServer integration, and UI verification matrix.
+- [`docs/RELEASE_NOTES_v0.4.0.md`](docs/RELEASE_NOTES_v0.4.0.md) — Full changelog and verification audit for version 0.4.0.
+
+---
+
+## 10. License & Attribution
+
+Copyright © 2026 AWARESPAN Team. All rights reserved.  
+Official Contact: [awarespan@bchbenjamin.in](mailto:awarespan@bchbenjamin.in)

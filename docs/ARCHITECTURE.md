@@ -1,7 +1,7 @@
 # AWARESPAN Android Architecture
 
 *Namespace / Application ID: `com.awarespan.guardian`*
-*Target Android Version: minSdk 26 (Android 8.0 Oreo), targetSdk 34 (Android 14)*
+*Target Android Version: minSdk 26 (Android 8.0 Oreo), targetSdk 35 (Android 15)*
 
 ---
 
