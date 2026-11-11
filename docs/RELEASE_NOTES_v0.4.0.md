@@ -56,6 +56,7 @@ Strictly implemented according to `docs/DESIGN.md`:
 
 | Artifact | File Name | Size (Bytes) | SHA-256 Checksum |
 | :--- | :--- | :--- | :--- |
+| **Release APK (Signed)** | `app-release.apk` | 1,579,152 | `d6a53bb19849980e15607b945ef08ebe426a14143f0a8e40bde0d2d3164d9fa1` |
 | **Release APK (Unsigned)** | `app-release-unsigned.apk` | 1,564,331 | `d1e80f06be65658443126bcca1ab2deef4ff6b590bd92d18d1392739ac47e1e4` |
 | **Debug APK** | `app-debug.apk` | 13,248,512 | *Built via `./gradlew assembleDebug`* |
 

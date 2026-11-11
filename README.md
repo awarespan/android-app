@@ -175,7 +175,8 @@ export AWARESPAN_KEY_PASSWORD="your-key-password"
 
 | Binary | Path | Size | SHA-256 Hash |
 | :--- | :--- | :--- | :--- |
-| **Release APK (Unsigned)** | `android/app/build/outputs/apk/release/app-release-unsigned.apk` | 1.56 MB | `d1e80f06be65658443126bcca1ab2deef4ff6b590bd92d18d1392739ac47e1e4` |
+| **Release APK (Signed)** | `app-release.apk` | 1.51 MB | `d6a53bb19849980e15607b945ef08ebe426a14143f0a8e40bde0d2d3164d9fa1` |
+| **Release APK (Unsigned)** | `app-release-unsigned.apk` | 1.49 MB | `d1e80f06be65658443126bcca1ab2deef4ff6b590bd92d18d1392739ac47e1e4` |
 
 ### Package Verification (`aapt dump badging`)
 ```text
