@@ -18,19 +18,17 @@ android {
     compileSdk 35
     signingConfigs {
         release {
-            def keystorePath = System.getenv('AWARESPAN_KEYSTORE_FILE') ?: System.getenv('SIP_KEYSTORE_FILE')
-            def keystorePassword = System.getenv('AWARESPAN_KEYSTORE_PASSWORD') ?: System.getenv('SIP_KEYSTORE_PASSWORD')
-            def keyAliasVal = System.getenv('AWARESPAN_KEY_ALIAS') ?: System.getenv('SIP_KEY_ALIAS')
-            def keyPasswordVal = System.getenv('AWARESPAN_KEY_PASSWORD') ?: System.getenv('SIP_KEY_PASSWORD')
+            def keystorePath = System.getenv('AWARESPAN_KEYSTORE_FILE') ?: System.getenv('SIP_KEYSTORE_FILE') ?: 'sip-beta.jks'
+            def keystorePassword = System.getenv('AWARESPAN_KEYSTORE_PASSWORD') ?: System.getenv('SIP_KEYSTORE_PASSWORD') ?: 'S1pGuardian2026!'
+            def keyAliasVal = System.getenv('AWARESPAN_KEY_ALIAS') ?: System.getenv('SIP_KEY_ALIAS') ?: 'sip-beta'
+            def keyPasswordVal = System.getenv('AWARESPAN_KEY_PASSWORD') ?: System.getenv('SIP_KEY_PASSWORD') ?: 'S1pGuardian2026!'
 
-            if (keystorePath && keystorePassword && keyAliasVal && keyPasswordVal) {
-                def kFile = file(keystorePath.startsWith('/') ? keystorePath : '../' + keystorePath)
-                if (kFile.exists()) {
-                    storeFile kFile
-                    storePassword keystorePassword
-                    keyAlias keyAliasVal
-                    keyPassword keyPasswordVal
-                }
+            def kFile = file(keystorePath.startsWith('/') ? keystorePath : '../' + keystorePath)
+            if (kFile.exists()) {
+                storeFile kFile
+                storePassword keystorePassword
+                keyAlias keyAliasVal
+                keyPassword keyPasswordVal
             }
         }
     }
