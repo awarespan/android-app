@@ -30,5 +30,10 @@ Thumbs.db
 *.swp
 *.swo
 
+# Release outputs
+release-v0.4.0/
+release-dist/
+*.apk
+
 # Local backups
 .backup-sip-android/
