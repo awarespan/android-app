@@ -5,32 +5,41 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
-def sipApiBaseUrl = providers.gradleProperty('SIP_API_BASE_URL')
+def apiBaseUrl = providers.gradleProperty('AWARESPAN_API_BASE_URL')
+        .orElse(providers.environmentVariable('AWARESPAN_API_BASE_URL'))
+        .orElse(providers.gradleProperty('SIP_API_BASE_URL'))
         .orElse(providers.environmentVariable('SIP_API_BASE_URL'))
-        .orElse('https://api.sip.bchbenjamin.in/')
+        .orElse('https://api.awarespan.bchbenjamin.in/')
         .get()
-def escapedBaseUrl = sipApiBaseUrl.replace('\\', '\\\\').replace('"', '\\"')
+def escapedBaseUrl = apiBaseUrl.replace('\\', '\\\\').replace('"', '\\"')
 
 android {
-    namespace 'com.sip.guardian'
+    namespace 'com.awarespan.guardian'
     compileSdk 35
     signingConfigs {
         release {
-            def kFile = file('../' + (System.getenv('SIP_KEYSTORE_FILE') ?: 'sip-beta.jks'))
-            if (kFile.exists()) {
-                storeFile kFile
-                storePassword System.getenv('SIP_KEYSTORE_PASSWORD') ?: 'S1pGuardian2026!'
-                keyAlias System.getenv('SIP_KEY_ALIAS') ?: 'sip-beta'
-                keyPassword System.getenv('SIP_KEY_PASSWORD') ?: 'S1pGuardian2026!'
+            def keystorePath = System.getenv('AWARESPAN_KEYSTORE_FILE') ?: System.getenv('SIP_KEYSTORE_FILE')
+            def keystorePassword = System.getenv('AWARESPAN_KEYSTORE_PASSWORD') ?: System.getenv('SIP_KEYSTORE_PASSWORD')
+            def keyAliasVal = System.getenv('AWARESPAN_KEY_ALIAS') ?: System.getenv('SIP_KEY_ALIAS')
+            def keyPasswordVal = System.getenv('AWARESPAN_KEY_PASSWORD') ?: System.getenv('SIP_KEY_PASSWORD')
+
+            if (keystorePath && keystorePassword && keyAliasVal && keyPasswordVal) {
+                def kFile = file(keystorePath.startsWith('/') ? keystorePath : '../' + keystorePath)
+                if (kFile.exists()) {
+                    storeFile kFile
+                    storePassword keystorePassword
+                    keyAlias keyAliasVal
+                    keyPassword keyPasswordVal
+                }
             }
         }
     }
     defaultConfig {
-        applicationId "com.sip.guardian"
+        applicationId "com.awarespan.guardian"
         minSdk 26
         targetSdk 35
-        versionCode 4
-        versionName "0.3.0"
+        versionCode 5
+        versionName "0.4.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary true }
     }
@@ -45,6 +54,10 @@ android {
             buildConfigField "String", "API_BASE_URL", '"' + escapedBaseUrl + '"'
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

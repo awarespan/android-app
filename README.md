@@ -1,64 +1,108 @@
-# SIP Guardian — AI-Powered Street Safety Device Network
+# AWARESPAN — Android Operations Console
 
-This repository is a monorepo for the Android operator app and the Spring Boot backend.
+> **Awareness Without Boundaries.**  
+> Real-Time Edge Intelligence, Incident Verification & Autonomous Policy Control.
 
-## Repository layout
+[![AWARESPAN Android CI](https://github.com/awarespan/android-app/actions/workflows/android-ci.yml/badge.svg)](https://github.com/awarespan/android-app/actions/workflows/android-ci.yml)
+[![Version](https://img.shields.io/badge/version-0.4.0-ff4f2b.svg)](https://github.com/awarespan/android-app/releases/tag/v0.4.0)
 
-- `android/` — Android client (Java domain/data layers, Kotlin + Jetpack Compose UI).
-- `backend/` — Spring Boot REST/WebSocket API, authentication, Flyway migrations and Neon/PostgreSQL integration.
-- `CONTEXT/` — project context and the consolidated implementation plan.
-- `docs/IMPLEMENTATION_STATUS.md` — implemented capabilities, known gaps and verification status.\n- `docs/IMPLEMENTATION_PLAN_DELTA.md` — current monorepo decisions and implementation gaps; it supersedes conflicting repository instructions in the original plan.
+---
 
-## Architecture
+## 1. Overview
+
+**AWARESPAN Android** is the mobile operations console for the AWARESPAN edge intelligence security network. It provides security operators with real-time threat detection feeds, edge node telemetry monitoring, AI prediction verification, and autonomous response policy controls.
+
+The application follows the **AWARESPAN Zero-Radius Design System** (`docs/DESIGN.md`):
+- **Void Black Canvas (`#000000`)** optimized for night operations and OLED power efficiency.
+- **Carbon Surfaces (`#1a1a1a`)** with 1dp hairline **Graphite Borders (`#3c3c3c`)**.
+- **Ember Orange (`#ff4f2b`)** reserved strictly for primary actions, critical alerts, and selection states.
+- **Architectural 0dp Geometry**: Sharp right angles on all cards, buttons, inputs, dialogs, and status badges.
+- **Monospaced Operational Metadata** for high-precision hardware identifiers and ISO timestamps.
+
+---
+
+## 2. System Architecture
 
 ```text
-Raspberry Pi edge nodes (local inference/autonomy)
-            │ future MQTT/HTTPS integration
-            ▼
-Spring Boot backend ─────── Neon PostgreSQL
-            ▲
-            │ HTTPS / WSS
-            ▼
-SIP Guardian Android app ── Room local cache
+  Raspberry Pi Edge Nodes (Hardware Inference)
+                     │
+                     │ MQTT / Secure Telemetry
+                     ▼
+  AWARESPAN Spring Boot API Gateway (api.awarespan.bchbenjamin.in)
+                     ▲
+                     │ HTTPS (REST) & WSS (/ws/events)
+                     ▼
+  AWARESPAN Android App (com.awarespan.guardian)
+         ├── Jetpack Compose UI (0dp Architectural Design)
+         ├── Dagger Hilt Dependency Injection
+         ├── Java Domain Models & Repository Contracts
+         ├── Room Local Cache (Offline Operations)
+         └── Android Keystore (Encrypted Token Storage)
 ```
 
-The backend is the canonical API and database boundary. Android must not connect directly to Neon, MQTT or Raspberry Pi nodes. Room is an offline cache, not the system of record. Edge autonomy must continue locally if the network or backend is unavailable.
+> [!IMPORTANT]
+> The Android application interacts exclusively with the authenticated Spring Boot gateway (`https://api.awarespan.bchbenjamin.in/`). It never communicates directly with edge hardware over raw SSH, RTSP, or local database ports.
 
-## Backend setup
+---
 
-Requirements: JDK 17+, Gradle 8.9+, and a PostgreSQL database (Neon recommended).
+## 3. Application Specifications
 
-1. Copy `backend/.env.example` to a private `backend/.env` and configure `DATABASE_URL` and `JWT_SECRET`. The backend does not read a Neon management API key as a database URL.
-2. Export those environment variables in your shell (Gradle/Spring Boot does not automatically load a `.env` file).
-3. Start the backend:
+- **Application ID / Package**: `com.awarespan.guardian`
+- **Application Label**: `AWARESPAN`
+- **Version Name**: `0.4.0`
+- **Version Code**: `5`
+- **Minimum SDK**: `26` (Android 8.0 Oreo)
+- **Target SDK**: `34` (Android 14)
+- **Primary Language**: Kotlin (UI / Compose) & Java (Domain / Data Layers)
 
-   ```bash
-   cd backend
-   ./gradlew bootRun
-   ```
+---
 
-4. Check health: `curl http://localhost:8080/actuator/health`.
+## 4. Documentation Index
 
-To create the first administrator, set both `SIP_BOOTSTRAP_ADMIN_USERNAME` and `SIP_BOOTSTRAP_ADMIN_PASSWORD` before first startup. Use a unique password of at least 12 characters. There are no intended default login credentials.
+- [**Design System Specification**](docs/DESIGN_SYSTEM.md): Tokens, typography, 0dp components, and mobile adaptations.
+- [**Architecture Documentation**](docs/ARCHITECTURE.md): Multi-paradigm layering, Hilt DI, Room cache, and edge isolation.
+- [**API & Network Integration**](docs/API_INTEGRATION.md): Gateway verification, REST contracts, and WebSocket event stream.
+- [**Authentication & Security**](docs/AUTHENTICATION.md): Android Keystore, token rotation, and error diagnostics.
+- [**Build & Release Guide**](docs/BUILD_AND_RELEASE.md): Compiling, signing configurations, and CI/CD automation.
+- [**Testing & Verification**](docs/TESTING.md): Unit tests, live health probes, and UI verification.
 
-## Android setup
+---
 
-Set the API base URL when building. For an emulator, `http://10.0.2.2:8080/` reaches the host machine. For a physical phone, use the host's LAN address during development or a deployed HTTPS URL.
+## 5. Quick Start & Build Instructions
 
+### Prerequisites
+- JDK 17 (Temurin 17 recommended)
+- Android SDK (API 34, Build Tools 34.0.0)
+
+### 5.1 Run Unit Tests
 ```bash
 cd android
-./gradlew clean testDebugUnitTest assembleDebug -PSIP_API_BASE_URL=http://10.0.2.2:8080/
+./gradlew testDebugUnitTest
 ```
 
-The debug APK is created at `android/app/build/outputs/apk/debug/app-debug.apk`.
+### 5.2 Build Debug APK
+```bash
+cd android
+./gradlew assembleDebug
+```
+Output artifact: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-## Security notes
+### 5.3 Build Signed Release APK
+Configure signing credentials via environment variables:
+```bash
+export AWARESPAN_KEYSTORE_FILE="/path/to/keystore.jks"
+export AWARESPAN_KEYSTORE_PASSWORD="KeystorePassword"
+export AWARESPAN_KEY_ALIAS="key-alias"
+export AWARESPAN_KEY_PASSWORD="KeyPassword"
 
-- Never put Neon credentials, backend secrets, Pi SSH credentials or node credentials in Android resources, BuildConfig, the APK or version control.
-- Use HTTPS/WSS outside local development.
-- Configure a strong random `JWT_SECRET`.
-- Do not expose the backend's database connection string or bootstrap administrator password in logs or issue reports.
+cd android
+./gradlew assembleRelease
+```
+Output artifact: `android/app/build/outputs/apk/release/app-release.apk`.
 
-## CI
+---
 
-Android and backend have separate GitHub Actions workflows. A green Android build alone does not establish that backend integration or live Neon connectivity works. See [implementation status](docs/IMPLEMENTATION_STATUS.md) for current limitations and outstanding integration work.
+## 6. License & Security
+
+Proprietary — All rights reserved by AWARESPAN.  
+For security disclosures or operational inquiries, contact `security@awarespan.bchbenjamin.in`.

@@ -1,0 +1,88 @@
+name: AWARESPAN Android Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag Name (e.g. v0.4.0)'
+        required: true
+        default: 'v0.4.0'
+
+jobs:
+  build-and-release:
+    name: Build & Publish Release APK
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+
+      - name: Configure Signing Credentials
+        id: signing-setup
+        env:
+          KEYSTORE_BASE64: ${{ secrets.AWARESPAN_RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PWD: ${{ secrets.AWARESPAN_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.AWARESPAN_KEY_ALIAS }}
+          KEY_PWD: ${{ secrets.AWARESPAN_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PWD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PWD" ]; then
+            echo "Signing secrets detected. Decoding release keystore..."
+            echo "$KEYSTORE_BASE64" | base64 -d > "${{ github.workspace }}/android/release.jks"
+            echo "AWARESPAN_KEYSTORE_FILE=${{ github.workspace }}/android/release.jks" >> $GITHUB_ENV
+            echo "AWARESPAN_KEYSTORE_PASSWORD=$KEYSTORE_PWD" >> $GITHUB_ENV
+            echo "AWARESPAN_KEY_ALIAS=$KEY_ALIAS" >> $GITHUB_ENV
+            echo "AWARESPAN_KEY_PASSWORD=$KEY_PWD" >> $GITHUB_ENV
+            echo "signed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No signing secrets found. Will build unsigned release artifact."
+            echo "signed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Unit Tests
+        run: |
+          cd android
+          ./gradlew testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Assemble Release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Generate Checksums & Package Artifacts
+        id: package-artifacts
+        run: |
+          mkdir -p release-dist
+          cp android/app/build/outputs/apk/release/*.apk release-dist/
+          cd release-dist
+          sha256sum *.apk > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          echo "artifact_dir=${{ github.workspace }}/release-dist" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ github.ref_name || inputs.tag_name }}
+          name: AWARESPAN ${{ github.ref_name || inputs.tag_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            release-dist/*.apk
+            release-dist/SHA256SUMS.txt

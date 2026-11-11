@@ -1,2 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources><string name="app_name">SIP Guardian</string></resources>
+<resources>
+    <string name="app_name">AWARESPAN</string>
+    <string name="brand_message">Awareness Without Boundaries</string>
+</resources>
