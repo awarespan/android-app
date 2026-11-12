@@ -1,7 +1,7 @@
 package com.awarespan.guardian.ui.screen.settings
 
+import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,8 +52,8 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     var showSignOutDialog by remember { mutableStateOf(false) }
-    var showDiagnostics by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.loggedOut) {
         if (state.loggedOut) onLoggedOut()
@@ -79,7 +80,7 @@ fun SettingsScreen(
                     color = BoneWhite,
                 )
                 Text(
-                    text = "OPERATOR PROFILE // NOTIFICATIONS // STORAGE",
+                    text = "OPERATOR PROFILE // PREFERENCES // DIAGNOSTICS",
                     fontFamily = FontFamilyMono,
                     fontSize = 10.sp,
                     letterSpacing = 0.8.sp,
@@ -208,69 +209,48 @@ fun SettingsScreen(
                 }
             }
 
-            // Optional Collapsed Diagnostics Section
+            // Diagnostic Export (Discreetly under Settings)
             AwarespanCard(modifier = Modifier.fillMaxWidth()) {
                 Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showDiagnostics = !showDiagnostics },
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "SYSTEM DIAGNOSTICS",
-                            fontFamily = FontFamilyMono,
-                            fontSize = 11.sp,
-                            color = SteelMid,
-                        )
-                        Text(
-                            text = if (showDiagnostics) "HIDE [-]" else "SHOW [+]",
-                            fontFamily = FontFamilyMono,
-                            fontSize = 11.sp,
-                            color = EmberOrange,
-                        )
-                    }
-
-                    if (showDiagnostics) {
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            text = "GATEWAY ENDPOINT",
-                            fontFamily = FontFamilyMono,
-                            fontSize = 10.sp,
-                            color = SteelMid,
-                        )
-                        Text(
-                            text = state.endpointUrl,
-                            fontFamily = FontFamilyMono,
-                            fontSize = 11.sp,
-                            color = BoneWhite,
-                        )
+                    Text(
+                        text = "DIAGNOSTICS & SUPPORT",
+                        fontFamily = FontFamilyMono,
+                        fontSize = 11.sp,
+                        color = SteelMid,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Export Diagnostic Logs",
+                        fontFamily = FontFamilyDisplay,
+                        fontSize = 15.sp,
+                        color = BoneWhite,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Packages operational event logs, connectivity history, and system build metadata into a secure ZIP archive for technical assistance. All authentication credentials, secrets, and private keys are strictly redacted.",
+                        fontFamily = FontFamilyDisplay,
+                        fontSize = 12.sp,
+                        color = FogLight,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    AwarespanButton(
+                        text = if (state.isExporting) "Generating Archive…" else "Export Diagnostics",
+                        onClick = {
+                            viewModel.exportDiagnostics { shareIntent ->
+                                context.startActivity(shareIntent)
+                            }
+                        },
+                        loading = state.isExporting,
+                        variant = ButtonVariant.OUTLINE,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    state.exportMessage?.let { msg ->
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            text = "SECURITY & PROTOCOL",
+                            text = msg,
                             fontFamily = FontFamilyMono,
                             fontSize = 10.sp,
-                            color = SteelMid,
-                        )
-                        Text(
-                            text = "HTTPS // WSS SECURE TLS VERIFIED",
-                            fontFamily = FontFamilyMono,
-                            fontSize = 11.sp,
                             color = StatusSafe,
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = "DATABASE SCHEMA",
-                            fontFamily = FontFamilyMono,
-                            fontSize = 10.sp,
-                            color = SteelMid,
-                        )
-                        Text(
-                            text = "Room SQLite v3 (Migration 2 -> 3 Verified)",
-                            fontFamily = FontFamilyMono,
-                            fontSize = 11.sp,
-                            color = BoneWhite,
                         )
                     }
                 }

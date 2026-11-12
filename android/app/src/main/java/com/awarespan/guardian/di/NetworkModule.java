@@ -25,7 +25,8 @@ public class NetworkModule {
     @Provides
     @Singleton
     OkHttpClient provideOkHttpClient(AuthInterceptor authInterceptor,
-                                     TokenRefreshAuthenticator authenticator) {
+                                     TokenRefreshAuthenticator authenticator,
+                                     com.awarespan.guardian.data.logging.DiagnosticLogger diagnosticLogger) {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(com.awarespan.guardian.BuildConfig.DEBUG
                 ? HttpLoggingInterceptor.Level.BASIC
@@ -36,6 +37,20 @@ public class NetworkModule {
                 .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .addInterceptor(authInterceptor)
                 .authenticator(authenticator)
+                .addInterceptor(chain -> {
+                    long start = System.currentTimeMillis();
+                    okhttp3.Request req = chain.request();
+                    try {
+                        okhttp3.Response res = chain.proceed(req);
+                        long dur = System.currentTimeMillis() - start;
+                        diagnosticLogger.logApiCall(req.method(), req.url().encodedPath(), res.code(), dur);
+                        return res;
+                    } catch (java.io.IOException e) {
+                        long dur = System.currentTimeMillis() - start;
+                        diagnosticLogger.warn("Network", req.method() + " " + req.url().encodedPath() + " failed after " + dur + "ms", e);
+                        throw e;
+                    }
+                })
                 .addInterceptor(logging)
                 .build();
     }

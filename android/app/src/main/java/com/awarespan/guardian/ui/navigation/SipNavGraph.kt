@@ -57,8 +57,8 @@ private val topLevelNavItems = listOf(
     NavItem(AwarespanNavDestination.IncidentFeed, "FEED", "!"),
     NavItem(AwarespanNavDestination.NodeList, "NODES", "⬚"),
     NavItem(AwarespanNavDestination.Map, "MAP", "⊕"),
-    NavItem(AwarespanNavDestination.EventHistory, "LOG", "≡"),
-    NavItem(AwarespanNavDestination.Settings, "CONFIG", "⚙"),
+    NavItem(AwarespanNavDestination.EventHistory, "ACTIVITY", "≡"),
+    NavItem(AwarespanNavDestination.Settings, "SETTINGS", "⚙"),
 )
 
 @Composable

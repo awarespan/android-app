@@ -37,6 +37,7 @@ class IncidentSyncWorker(
         fun incidentDao(): IncidentDao
         fun incidentMapper(): IncidentMapper
         fun authRepository(): AuthRepository
+        fun diagnosticLogger(): com.awarespan.guardian.data.logging.DiagnosticLogger
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
@@ -45,15 +46,18 @@ class IncidentSyncWorker(
             SyncEntryPoint::class.java
         )
 
+        val logger = entryPoint.diagnosticLogger()
         val auth = entryPoint.authRepository()
         if (auth.currentUser() == null) {
             return@withContext Result.success()
         }
 
+        val start = System.currentTimeMillis()
         try {
             val response = entryPoint.api().getIncidents(0, 10, null, null, null, null, null).execute()
             if (response.isSuccessful && response.body() != null) {
                 val dtos = response.body()?.content ?: emptyList()
+                logger.logSyncEvent("IncidentSyncWorker", dtos.size, System.currentTimeMillis() - start)
                 if (dtos.isNotEmpty()) {
                     val entities = entryPoint.incidentMapper().toEntities(dtos)
                     entryPoint.incidentDao().upsertAll(entities)

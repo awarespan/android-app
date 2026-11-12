@@ -37,6 +37,7 @@ class DashboardViewModel @Inject constructor(
     private val nodeRepository: NodeRepository,
     private val networkMonitor: NetworkMonitor,
     private val incidentMapper: IncidentMapper,
+    private val logger: com.awarespan.guardian.data.logging.DiagnosticLogger,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState
@@ -50,20 +51,25 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val hasNetwork = networkMonitor.isCurrentlyConnected()
             var isOffline = !hasNetwork
+            var isServingCache = !hasNetwork
             var incidents: List<Incident> = emptyList()
             var nodes: List<Node> = emptyList()
 
             try {
                 // Single source of truth for node states and heartbeats
                 nodes = nodeRepository.getNodes()
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 isOffline = true
+                isServingCache = true
+                logger.warn("Dashboard", "Failed to load nodes", e)
             }
 
             try {
                 incidents = incidentRepository.getIncidents(0, 5, null, null, null, null, null)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 isOffline = true
+                isServingCache = true
+                logger.warn("Dashboard", "Failed to load incidents", e)
             }
 
             // Optional dashboard summary probe to verify API health
@@ -77,9 +83,12 @@ class DashboardViewModel @Inject constructor(
                                 try { incidentMapper.toDomain(it) } catch (_: Exception) { null }
                             }
                         }
+                    } else {
+                        isServingCache = true
                     }
-                } catch (_: Exception) {
-                    isOffline = true
+                } catch (e: Exception) {
+                    isServingCache = true
+                    logger.warn("Dashboard", "Dashboard probe failed", e)
                 }
             }
 
@@ -99,6 +108,8 @@ class DashboardViewModel @Inject constructor(
                 else -> "NOMINAL"
             }
 
+            logger.info("Dashboard", "Telemetry refreshed: $onlineNodes/$totalNodes online, $activeThreatCount active threats (Offline: $isOffline, Cached: $isServingCache)")
+
             _uiState.value = DashboardUiState(
                 loading = false,
                 totalNodes = totalNodes,
@@ -107,8 +118,8 @@ class DashboardViewModel @Inject constructor(
                 systemHealth = health,
                 recentIncidents = incidents,
                 isOffline = isOffline,
-                isServingCache = isOffline,
-                error = if (isOffline) "Connection unavailable" else null,
+                isServingCache = isServingCache,
+                error = if (isOffline) "Showing previously saved information." else null,
             )
         }
     }

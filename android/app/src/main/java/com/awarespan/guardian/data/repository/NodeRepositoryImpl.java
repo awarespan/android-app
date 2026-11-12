@@ -23,12 +23,15 @@ public class NodeRepositoryImpl implements NodeRepository {
 
     private final SipApiService api;
     private final NodeDao dao;
+    private final com.awarespan.guardian.data.logging.DiagnosticLogger logger;
     private final Gson gson = new Gson();
 
     @Inject
-    public NodeRepositoryImpl(SipApiService api, NodeDao dao) {
+    public NodeRepositoryImpl(SipApiService api, NodeDao dao,
+                              com.awarespan.guardian.data.logging.DiagnosticLogger logger) {
         this.api = api;
         this.dao = dao;
+        this.logger = logger;
     }
 
     @Override
@@ -44,12 +47,15 @@ public class NodeRepositoryImpl implements NodeRepository {
                     out.add(toDomain(dto));
                 }
                 dao.upsertAll(entities);
+                logger.logSyncEvent("NodeSync", out.size(), 0);
                 return out;
+            } else {
+                logger.warn("Sync", "Node query returned status " + response.code() + "; falling back to cache");
             }
-        } catch (IOException ignored) {
-            // Use the last known cache when the backend cannot be reached.
-        } catch (RuntimeException ignored) {
-            // Malformed individual API data should not crash the dashboard.
+        } catch (IOException e) {
+            logger.warn("Sync", "Node query network failure; falling back to cache", e);
+        } catch (RuntimeException e) {
+            logger.warn("Sync", "Node query unexpected error; falling back to cache", e);
         }
 
         List<Node> cached = new ArrayList<>();

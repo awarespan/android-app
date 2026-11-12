@@ -170,30 +170,12 @@ fun LoginScreen(
 
             Spacer(Modifier.height(48.dp))
 
-            // Operational endpoint readout
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, GraphiteBorder, RectangleShape)
-                    .padding(12.dp)
-            ) {
-                Column {
-                    Text(
-                        text = "TARGET PRODUCTION BACKEND",
-                        fontFamily = FontFamilyMono,
-                        fontSize = 9.sp,
-                        letterSpacing = 0.6.sp,
-                        color = SteelMid,
-                    )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = state.endpointUrl,
-                        fontFamily = FontFamilyMono,
-                        fontSize = 11.sp,
-                        color = BoneWhite,
-                    )
-                }
-            }
+            Text(
+                text = "Awareness Without Boundaries.",
+                fontFamily = FontFamilyDisplay,
+                fontSize = 12.sp,
+                color = SteelMid,
+            )
         }
     }
 }

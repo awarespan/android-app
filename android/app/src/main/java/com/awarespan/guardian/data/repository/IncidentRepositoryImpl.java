@@ -30,12 +30,15 @@ public class IncidentRepositoryImpl implements IncidentRepository {
     private final SipApiService api;
     private final IncidentDao dao;
     private final IncidentMapper mapper;
+    private final com.awarespan.guardian.data.logging.DiagnosticLogger logger;
 
     @Inject
-    public IncidentRepositoryImpl(SipApiService api, IncidentDao dao, IncidentMapper mapper) {
+    public IncidentRepositoryImpl(SipApiService api, IncidentDao dao, IncidentMapper mapper,
+                                  com.awarespan.guardian.data.logging.DiagnosticLogger logger) {
         this.api = api;
         this.dao = dao;
         this.mapper = mapper;
+        this.logger = logger;
     }
 
     @Override
@@ -55,13 +58,13 @@ public class IncidentRepositoryImpl implements IncidentRepository {
                 dao.upsertAll(mapper.toEntities(dtos));
                 List<Incident> out = new ArrayList<>(dtos.size());
                 for (IncidentDto d : dtos) out.add(mapper.toDomain(d));
+                logger.logSyncEvent("IncidentSync", out.size(), 0);
                 return out;
+            } else {
+                logger.warn("Sync", "Incident query returned status " + response.code() + "; falling back to cache");
             }
-            if (response.code() >= 400 && response.code() < 500) {
-                throw new IllegalStateException("Incident query failed (HTTP " + response.code() + ")");
-            }
-        } catch (IOException ignored) {
-            // Fall through to filtered cache.
+        } catch (IOException e) {
+            logger.warn("Sync", "Incident query network failure; falling back to cache", e);
         }
 
         int fallbackPage = page != null ? page : 0;
@@ -96,12 +99,11 @@ public class IncidentRepositoryImpl implements IncidentRepository {
                 IncidentDto dto = response.body();
                 dao.upsert(mapper.toEntity(dto));
                 return mapper.toDomain(dto);
+            } else {
+                logger.warn("Sync", "Incident detail request for " + id + " returned status " + response.code());
             }
-            if (response.code() >= 400 && response.code() < 500) {
-                throw new IllegalStateException("Incident detail request failed (HTTP " + response.code() + ")");
-            }
-        } catch (IOException ignored) {
-            // Fall through to cache.
+        } catch (IOException e) {
+            logger.warn("Sync", "Incident detail request network failure", e);
         }
         var entity = dao.getById(id);
         return entity == null ? null : mapper.toDomain(mapper.toDto(entity));
@@ -119,11 +121,14 @@ public class IncidentRepositoryImpl implements IncidentRepository {
             if (response.isSuccessful() && response.body() != null) {
                 IncidentDto dto = response.body();
                 dao.upsert(mapper.toEntity(dto));
+                logger.info("Verification", "Incident " + incidentId + " verified with verdict: " + verdict);
                 return mapper.toDomain(dto);
             }
-            throw new IllegalStateException("Verification failed: HTTP " + response.code());
+            logger.warn("Verification", "Verification failed for " + incidentId + ": HTTP " + response.code());
+            throw new IllegalStateException("Verification could not be completed. Please try again.");
         } catch (IOException e) {
-            throw new IllegalStateException("Verification failed: network error", e);
+            logger.warn("Verification", "Verification network error for " + incidentId, e);
+            throw new IllegalStateException("Verification network error. Please verify connection and retry.", e);
         }
     }
 

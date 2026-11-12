@@ -50,10 +50,10 @@ fun EventHistoryScreen(
     val state by viewModel.uiState.collectAsState()
 
     val (connLabel, connColor) = when (state.connectionState) {
-        WebSocketEvent.ConnectionState.CONNECTED -> "CONNECTED // REALTIME" to StatusSafe
-        WebSocketEvent.ConnectionState.CONNECTING -> "ESTABLISHING HANDSHAKE…" to StatusWarning
-        WebSocketEvent.ConnectionState.DISCONNECTED -> "OFFLINE // DISCONNECTED" to SteelMid
-        WebSocketEvent.ConnectionState.FAILED -> "CHANNEL FAULT" to StatusCritical
+        WebSocketEvent.ConnectionState.CONNECTED -> "Connected" to StatusSafe
+        WebSocketEvent.ConnectionState.CONNECTING -> "Reconnecting" to StatusWarning
+        WebSocketEvent.ConnectionState.DISCONNECTED -> "Offline" to SteelMid
+        WebSocketEvent.ConnectionState.FAILED -> "Offline" to SteelMid
     }
 
     Box(

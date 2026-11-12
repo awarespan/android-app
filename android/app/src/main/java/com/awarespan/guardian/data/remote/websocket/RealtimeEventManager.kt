@@ -20,15 +20,20 @@ class RealtimeEventManager @Inject constructor(
     private val webSocketClient: SipWebSocketClient,
     private val incidentDao: IncidentDao,
     private val incidentMapper: IncidentMapper,
+    private val logger: com.awarespan.guardian.data.logging.DiagnosticLogger,
 ) {
     private var isConnected = false
 
     private val listener = SipWebSocketClient.Listener { event ->
         when (event) {
+            is WebSocketEvent.OnConnectionStateChanged -> {
+                logger.logRealtimeState(event.state.name, event.reason)
+            }
             is WebSocketEvent.OnIncidentReceived -> {
                 val incident = event.incident ?: return@Listener
                 if (incident.id == null) return@Listener
                 incidentDao.upsert(incidentMapper.toEntity(incident))
+                logger.info("Realtime", "Received real-time incident ${incident.id} (Threat: ${incident.threatType})")
 
                 val threatType = incident.threat?.type
                     ?: incident.threatType ?: "UNKNOWN"
@@ -46,9 +51,11 @@ class RealtimeEventManager @Inject constructor(
                 val incident = event.incident ?: return@Listener
                 if (incident.id != null) {
                     incidentDao.upsert(incidentMapper.toEntity(incident))
+                    logger.info("Realtime", "Updated real-time incident ${incident.id}")
                 }
             }
             is WebSocketEvent.OnSystemAlert -> {
+                logger.warn("Realtime", "System alert [${event.level}]: ${event.message}")
                 NotificationService.notifySystemAlert(
                     context,
                     event.level,
@@ -61,6 +68,7 @@ class RealtimeEventManager @Inject constructor(
 
     fun startForegroundSession(baseUrl: String = BuildConfig.API_BASE_URL) {
         if (!isConnected) {
+            logger.info("Realtime", "Starting foreground WebSocket telemetry session")
             webSocketClient.addListener(listener)
             webSocketClient.connect(baseUrl)
             isConnected = true
@@ -69,6 +77,7 @@ class RealtimeEventManager @Inject constructor(
 
     fun stopForegroundSession() {
         if (isConnected) {
+            logger.info("Realtime", "Stopping foreground WebSocket telemetry session")
             webSocketClient.removeListener(listener)
             webSocketClient.disconnect()
             isConnected = false

@@ -160,12 +160,37 @@ export AWARESPAN_KEY_PASSWORD="your-key-password"
 
 ---
 
-## 7. Security & Cryptographic Safeguards
+## 7. Security & Diagnostic Logging Architecture
 
+### 7.1 Security & Cryptographic Safeguards
 1. **Hardware-Backed Key Storage**: Master keys are generated inside the Android Keystore system (`MasterKey.KeyScheme.AES256_GCM`). Tokens are encrypted on-disk using AES-256-SIV (keys) and AES-256-GCM (values).
 2. **Transparent Token Rotation**: `TokenRefreshAuthenticator` intercepts `401 Unauthorized` responses and synchronizes refresh token requests to renew expired JWT access tokens without interrupting operator workflows.
 3. **Encrypted Transport Only**: `android:usesCleartextTraffic="false"` is strictly enforced in `AndroidManifest.xml`. All network communication requires TLS 1.3 / TLS 1.2 with valid CA trust anchors.
 4. **ProGuard / R8 Obfuscation Defense**: Critical network DTOs and Room entities are protected via keep rules in [`proguard-rules.pro`](android/app/proguard-rules.pro), eliminating `ClassCastException` and deserialization failures under aggressive release optimization.
+
+### 7.2 Diagnostic Logging & Privacy Protection
+The application maintains a bounded, app-private diagnostic log store for operational support and troubleshooting without exposing sensitive data:
+- **Bounded Storage (< 512 KB)**: Managed by `DiagnosticLogger`, using a rolling log buffer (up to 4 rotated log files, 128 KB each) stored in `context.filesDir/diagnostics/`. Prevents disk bloat on low-storage devices.
+- **Automatic Secret Redaction**: All operational logs pass through regex filters that redact JWT tokens (`Bearer ey...`), client secrets, passwords, and private API keys before writing to disk.
+- **Categorized Operational Subsystems**:
+  - `Awarespan.Auth`: Session authentication, token refresh lifecycle.
+  - `Awarespan.Network`: REST API telemetry, HTTP statuses, round-trip durations (no payload body leaks).
+  - `Awarespan.Sync`: WorkManager background synchronization tasks.
+  - `Awarespan.Realtime`: WebSocket connection state, heartbeat frames, topic subscriptions.
+  - `Awarespan.Node`: Node health, telemetry parsing, and status transitions.
+
+### 7.3 Operator Diagnostic Export Workflow
+Operators can generate an encrypted/sanitized diagnostic archive directly from the UI:
+1. Navigate to the **Settings** screen (bottom navigation bar).
+2. Under **Diagnostics & Support**, tap **Export Diagnostics**.
+3. The application bundles `system_info.json`, `operational_events.log`, and `README.txt` into a timestamped `.zip` archive inside cache storage.
+4. The native **Android Sharesheet** opens securely via `androidx.core.content.FileProvider`, allowing the operator to send the report via email, cloud drive, or messaging to support teams.
+
+### 7.4 Developer / Field Engineer Logcat Access
+For live troubleshooting in lab or field environments, stream filtered subsystem logs via ADB:
+```bash
+adb logcat -s Awarespan.Auth Awarespan.Network Awarespan.Sync Awarespan.Realtime Awarespan.Node
+```
 
 ---
 
@@ -175,8 +200,7 @@ export AWARESPAN_KEY_PASSWORD="your-key-password"
 
 | Binary | Path | Size | SHA-256 Hash |
 | :--- | :--- | :--- | :--- |
-| **Release APK (Signed)** | `app-release.apk` | 1.51 MB | `d6a53bb19849980e15607b945ef08ebe426a14143f0a8e40bde0d2d3164d9fa1` |
-| **Release APK (Unsigned)** | `app-release-unsigned.apk` | 1.49 MB | `d1e80f06be65658443126bcca1ab2deef4ff6b590bd92d18d1392739ac47e1e4` |
+| **Release APK (Signed)** | `release-v0.4.0/app-release.apk` | 1.64 MB | `0d627103df4a4e698a27b47caf5f774bf6f420f1f48335a0fa3879ec3b39f3af` |
 
 ### Package Verification (`aapt dump badging`)
 ```text
