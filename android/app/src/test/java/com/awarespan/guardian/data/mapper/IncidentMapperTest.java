@@ -105,4 +105,23 @@ public class IncidentMapperTest {
         assertEquals("cam-volunteer-01", backToDto.sourceDeviceId);
         assertEquals("CAMERA", backToDto.sourceType);
     }
+    @Test
+    public void mapsBackendDeterrenceResponseIntoDomainModel() {
+        IncidentDto dto = new IncidentDto();
+        dto.id = "incident-speaker";
+        dto.state = "DETECTED";
+        dto.responseEvents = java.util.List.of(new IncidentDto.ResponseEventDto());
+        dto.responseEvents.get(0).id = "response-speaker-1";
+        dto.responseEvents.get(0).actionType = "DETERRENCE";
+        dto.responseEvents.get(0).timestamp = "2026-11-16T10:00:00Z";
+        dto.responseEvents.get(0).result = "STARTED; frequency=987Hz; duration=1.5s";
+        dto.responseEvents.get(0).autonomous = true;
+
+        var domain = new IncidentMapper().toDomain(dto);
+        assertEquals(1, domain.getResponseEvents().size());
+        assertEquals(com.awarespan.guardian.domain.model.DeterrenceType.DETERRENCE,
+                domain.getResponseEvents().get(0).getActionType());
+        assertTrue(domain.getResponseEvents().get(0).getResult().contains("987Hz"));
+    }
+
 }

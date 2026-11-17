@@ -5,6 +5,7 @@ import com.awarespan.guardian.data.remote.websocket.SipWebSocketClient
 import com.awarespan.guardian.data.remote.websocket.WebSocketEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Instant
+import java.time.OffsetDateTime
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,13 +33,37 @@ class EventHistoryViewModel @Inject constructor(
     private val listener = SipWebSocketClient.Listener { event ->
         val now = Instant.now()
         val entry = when (event) {
-            is WebSocketEvent.OnIncidentReceived -> LiveEventEntry(
-                now,
-                "INCIDENT_NEW",
-                "New threat detected by ${event.incident.nodeId ?: "sensor"}",
-                "Classification: ${event.incident.threatType ?: "UNKNOWN"}, State: ${event.incident.state ?: "DETECTED"}",
-                isAlert = true
-            )
+            is WebSocketEvent.OnIncidentReceived -> {
+                val incident = event.incident
+                val responseEntries = incident.responseEvents.orEmpty()
+                    .filter { it.actionType.equals("DETERRENCE", ignoreCase = true) }
+                    .map { response ->
+                        val responseTime = response.timestamp?.let {
+                            runCatching { Instant.parse(it) }.getOrNull()
+                                ?: runCatching { OffsetDateTime.parse(it).toInstant() }.getOrNull()
+                        } ?: now
+                        LiveEventEntry(
+                            responseTime,
+                            "PI_DETERRENCE",
+                            if (response.result?.startsWith("STARTED") == true)
+                                "Pi speaker warning started"
+                            else "Pi speaker warning not started",
+                            response.result ?: "The Pi recorded a deterrence response.",
+                            isAlert = response.result?.startsWith("STARTED") == true,
+                        )
+                    }
+                val detectionEntry = LiveEventEntry(
+                    now,
+                    "INCIDENT_NEW",
+                    "New threat detected by ${incident.nodeId ?: "sensor"}",
+                    "Classification: ${incident.threatType ?: "UNKNOWN"}, State: ${incident.state ?: "DETECTED"}",
+                    isAlert = true
+                )
+                _uiState.value = _uiState.value.copy(
+                    events = (responseEntries + detectionEntry + _uiState.value.events).take(100)
+                )
+                null
+            }
             is WebSocketEvent.OnIncidentUpdated -> LiveEventEntry(
                 now,
                 "INCIDENT_UPDATED",

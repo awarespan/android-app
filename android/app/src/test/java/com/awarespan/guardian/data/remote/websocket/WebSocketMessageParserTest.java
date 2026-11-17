@@ -41,4 +41,20 @@ public class WebSocketMessageParserTest {
         assertNull(parser.parse("{not-json"));
         assertNull(parser.parse("{\"type\":\"UNKNOWN\"}"));
     }
+    @Test public void parsesPersistedPiDeterrenceResultInIncidentBroadcast() {
+        WebSocketEvent event = parser.parse(
+                "{\"type\":\"INCIDENT_NEW\",\"payload\":{" +
+                "\"id\":\"i-speaker\",\"state\":\"DETECTED\"," +
+                "\"responseEvents\":[{" +
+                "\"id\":\"r-speaker\",\"actionType\":\"DETERRENCE\"," +
+                "\"timestamp\":\"2026-11-16T10:00:00Z\"," +
+                "\"result\":\"STARTED; frequency=977Hz; duration=1.5s\"," +
+                "\"autonomous\":true}]}}");
+        assertNotNull(event);
+        var incident = ((WebSocketEvent.OnIncidentReceived) event).incident;
+        assertEquals(1, incident.responseEvents.size());
+        assertEquals("DETERRENCE", incident.responseEvents.get(0).actionType);
+        assertEquals("STARTED; frequency=977Hz; duration=1.5s", incident.responseEvents.get(0).result);
+    }
+
 }
