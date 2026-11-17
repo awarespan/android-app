@@ -37,6 +37,20 @@ public class WebSocketMessageParserTest {
         assertEquals("ONLINE", status.status);
     }
 
+    @Test public void parsesPersistedPiDetectionLabelsAndConfidence() {
+        WebSocketEvent event = parser.parse(
+                "{\"type\":\"INCIDENT_NEW\",\"payload\":{" +
+                "\"id\":\"i-detection\",\"threatType\":\"WEAPON\"," +
+                "\"detection\":{" +
+                "\"predictedClass\":\"gun,knife\",\"confidence\":0.93," +
+                "\"modelVersion\":\"awarespan-weapon-yolov8n:1.0.0\"}}}");
+        assertNotNull(event);
+        var detection = ((WebSocketEvent.OnIncidentReceived) event).incident.detection;
+        assertNotNull(detection);
+        assertEquals("gun,knife", detection.predictedClass);
+        assertEquals(0.93, detection.confidence, 0.0001);
+    }
+
     @Test public void dropsMalformedMessages() {
         assertNull(parser.parse("{not-json"));
         assertNull(parser.parse("{\"type\":\"UNKNOWN\"}"));

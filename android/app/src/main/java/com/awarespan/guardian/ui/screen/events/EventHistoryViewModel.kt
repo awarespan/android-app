@@ -56,7 +56,16 @@ class EventHistoryViewModel @Inject constructor(
                     now,
                     "INCIDENT_NEW",
                     "New threat detected by ${incident.nodeId ?: "sensor"}",
-                    "Classification: ${incident.threatType ?: "UNKNOWN"}, State: ${incident.state ?: "DETECTED"}",
+                    buildString {
+                        val detection = incident.detection
+                        append("Classification: ${incident.threatType ?: "UNKNOWN"}")
+                        if (detection?.predictedClass != null) {
+                            append(" (${detection.predictedClass}")
+                            append(detection.confidence.let { ", ${(it * 100).toInt()}%" })
+                            append(")")
+                        }
+                        append(", State: ${incident.state ?: "DETECTED"}")
+                    },
                     isAlert = true
                 )
                 _uiState.value = _uiState.value.copy(
