@@ -1,6 +1,6 @@
 # AWARESPAN — Android Operational Console
 
-[![Release](https://img.shields.io/badge/Release-v0.4.0-FF4F2B?style=flat-square&labelColor=1A1A1A)](https://github.com/awarespan/android-app/releases/tag/v0.4.0)
+[![Release](https://img.shields.io/badge/Release-v0.5.0-FF4F2B?style=flat-square&labelColor=1A1A1A)](https://github.com/awarespan/android-app/releases/tag/v0.5.0)
 [![Build Status](https://img.shields.io/badge/Build-Passing-2ECC71?style=flat-square&labelColor=1A1A1A)](https://github.com/awarespan/android-app/actions)
 [![Android](https://img.shields.io/badge/Android-8.0%2B%20%28API%2026--35%29-3498DB?style=flat-square&labelColor=1A1A1A)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.24-7F52FF?style=flat-square&labelColor=1A1A1A)](https://kotlinlang.org)
@@ -20,8 +20,8 @@
 | **Brand Tagline** | *Awareness Without Boundaries.* |
 | **Application Label** | `AWARESPAN` |
 | **Application ID / Namespace** | `com.awarespan.guardian` |
-| **Version Name** | `0.4.0` |
-| **Version Code** | `5` |
+| **Version Name** | `0.5.0` |
+| **Version Code** | `6` |
 | **Minimum SDK** | API 26 (Android 8.0 Oreo) |
 | **Target / Compile SDK** | API 35 (Android 15) |
 | **Repository** | [`awarespan/android-app`](https://github.com/awarespan/android-app) |
@@ -196,6 +196,20 @@ adb logcat -s Awarespan.Auth Awarespan.Network Awarespan.Sync Awarespan.Realtime
 
 ## 8. Release Artifacts & Verification
 
+### v0.5.0 Release Artifacts
+
+| Binary | Path | Size | SHA-256 Hash |
+| :--- | :--- | :--- | :--- |
+| **Release APK (Signed)** | `app-release.apk` | 1.66 MB | `7cbe9229388461968782273c32479c70ab497ca4090d4bcb3175a1b16da998f7` |
+
+### Package Verification (`aapt dump badging`)
+```text
+package: name='com.awarespan.guardian' versionCode='6' versionName='0.5.0'
+sdkVersion:'26' targetSdkVersion:'35'
+application-label:'AWARESPAN'
+application-icon-160:'res/drawable/ic_awarespan_logo.xml'
+```
+
 ### v0.4.0 Release Artifacts
 
 | Binary | Path | Size | SHA-256 Hash |
@@ -222,6 +236,7 @@ All in-depth engineering documentation is maintained under [`docs/`](docs/):
 - [`docs/AUTHENTICATION.md`](docs/AUTHENTICATION.md) — Android Keystore, EncryptedSharedPreferences, and token rotation lifecycle.
 - [`docs/BUILD_AND_RELEASE.md`](docs/BUILD_AND_RELEASE.md) — Build variants, signing configurations, R8 rules, and release checklists.
 - [`docs/TESTING.md`](docs/TESTING.md) — Unit test suite breakdown, MockWebServer integration, and UI verification matrix.
+- [`docs/RELEASE_NOTES_v0.5.0.md`](docs/RELEASE_NOTES_v0.5.0.md) — Full changelog and verification audit for version 0.5.0.
 - [`docs/RELEASE_NOTES_v0.4.0.md`](docs/RELEASE_NOTES_v0.4.0.md) — Full changelog and verification audit for version 0.4.0.
 
 ---
