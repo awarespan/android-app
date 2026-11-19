@@ -7,7 +7,7 @@
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-2024.06.00-4285F4?style=flat-square&labelColor=1A1A1A)](https://developer.android.com/jetpack/compose)
 [![Architecture](https://img.shields.io/badge/Design%20System-Zero--Radius%20Dark-FF4F2B?style=flat-square&labelColor=1A1A1A)](docs/DESIGN_SYSTEM.md)
 
-> **Awareness Without Boundaries.**  
+> **Awareness Without Boundaries.**
 > The official Android operational console for the **AWARESPAN** distributed edge AI safety ecosystem.
 
 ---
@@ -114,7 +114,7 @@ Detailed component guidelines and Jetpack Compose token mappings are documented 
 | **Image Loading** | Coil Compose | `2.6.0` | High-performance image loading with memory cache |
 | **Video Playback** | Media3 / ExoPlayer | `1.3.1` | Incident video evidence playback |
 | **Build System** | Gradle | `8.9` | Build automation, R8 shrinking, ProGuard |
-| **Android Gradle** | AGP | `8.5.1` | Android compilation plugin |
+| **Android Gradle** | AGP | `8.7.3` | Android compilation plugin |
 
 ---
 
@@ -243,5 +243,5 @@ All in-depth engineering documentation is maintained under [`docs/`](docs/):
 
 ## 10. License & Attribution
 
-Copyright © 2026 AWARESPAN Team. All rights reserved.  
+Copyright © 2026 AWARESPAN Team. All rights reserved.
 Official Contact: [awarespan@bchbenjamin.in](mailto:awarespan@bchbenjamin.in)

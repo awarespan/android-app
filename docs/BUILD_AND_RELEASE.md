@@ -1,8 +1,8 @@
 # AWARESPAN Android Build & Release Guide
 
-*Application ID: `com.awarespan.guardian`*  
-*Version Name: `0.4.0`*  
-*Version Code: `5`*
+*Application ID: `com.awarespan.guardian`*
+*Version Name: `0.5.0`*
+*Version Code: `6`*
 
 ---
 
