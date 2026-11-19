@@ -19,48 +19,98 @@
 
 ---
 
-## 2. Local Build Instructions
+## 2. Build the APK from source
 
-### 2.1 Running Unit Tests
-Unit tests cover all domain logic, entity mappers, WebSocket frame parsers, and repository authenticators:
+The Android app is a client. It contains **no bootstrap administrator credentials,
+node credentials, backend API key, or SSH login**. Operators sign in using accounts
+that already exist in the backend. The API base URL is a build-time endpoint setting;
+operator credentials are entered at runtime and sent to the backend over HTTPS.
+
+### 2.1 Install the build tools
+
+- JDK 17 (verify with `java -version`).
+- Android SDK Platform 35 and Android SDK Build-Tools 35.0.0.
+- Android SDK Platform-Tools (`adb`) if you want to install the APK from a terminal.
+- Git.
+
+Set `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) to your Android SDK directory and ensure
+`$ANDROID_HOME/platform-tools` is on `PATH`. The Gradle 8.9 wrapper is included; do
+not install a separate Gradle version.
+
+### 2.2 Clone and configure the backend URL
+
+```bash
+git clone https://github.com/awarespan/android-app.git
+cd android-app
+```
+
+The production backend URL is already the default. To build against another backend,
+export the URL before invoking Gradle:
+
+```bash
+export AWARESPAN_API_BASE_URL="https://your-backend.example/"
+```
+
+The URL must end with `/` because Retrofit resolves API paths relative to it. Do not
+put a username, password, `DEVICE_API_KEY`, `PI_DEVICE_SECRET`, or bootstrap admin
+credentials in the Android project or APK. The backend must have an operator account
+provisioned separately before login can succeed.
+
+### 2.3 Run unit tests and build the debug APK
+
 ```bash
 cd android
-./gradlew testDebugUnitTest
+./gradlew --no-daemon clean testDebugUnitTest assembleDebug
 ```
-HTML test reports are generated at `android/app/build/reports/tests/testDebugUnitTest/index.html`.
 
-### 2.2 Assembling Debug Build
+The APK is written to:
+
+`android/app/build/outputs/apk/debug/app-debug.apk`
+
+The unit-test report is written to:
+
+`android/app/build/reports/tests/testDebugUnitTest/index.html`
+
+### 2.4 Install on a connected Android device
+
+Enable Developer Options and USB debugging, connect the device, then run:
+
 ```bash
-cd android
-./gradlew assembleDebug
+adb devices
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
-Output artifact: `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-### 2.3 Assembling Signed Release Build
-Release signing credentials must **never** be hardcoded in version control. Configure them using environment variables:
+Open **AWARESPAN**, enter the operator username and password provisioned by the
+backend administrator, and sign in. If login fails, verify the configured backend URL,
+backend health, and that the operator account exists. The app does not create or
+bootstrap administrator accounts.
+
+### 2.5 Build a signed release APK
+
+Keep the release keystore outside the repository. Supply all signing values through
+the environment (or your CI secret store):
 
 ```bash
-export AWARESPAN_KEYSTORE_FILE="/path/to/release.jks"
-export AWARESPAN_KEYSTORE_PASSWORD="SecureKeystorePassword"
-export AWARESPAN_KEY_ALIAS="release-key-alias"
-export AWARESPAN_KEY_PASSWORD="SecureKeyPassword"
+export AWARESPAN_KEYSTORE_FILE="/absolute/path/to/release.jks"
+export AWARESPAN_KEYSTORE_PASSWORD="<keystore-password>"
+export AWARESPAN_KEY_ALIAS="<key-alias>"
+export AWARESPAN_KEY_PASSWORD="<key-password>"
 
 cd android
-./gradlew assembleRelease
+./gradlew --no-daemon clean testDebugUnitTest assembleRelease
 ```
-Output artifact: `android/app/build/outputs/apk/release/app-release.apk`.
 
-> [!NOTE]
-> If signing environment variables are omitted, the build completes safely and generates an unsigned artifact (`app-release-unsigned.apk`) suitable for staging/PR verification without throwing unhandled exceptions.
-
----
+With complete signing configuration, the signed APK is written to
+`app/build/outputs/apk/release/app-release.apk`. Without it, Gradle produces an
+unsigned release APK, which cannot be installed as a normal signed release. Never
+commit the keystore or signing values.
 
 ## 3. Signature & Checksum Verification
 
 ### 3.1 Verifying APK Signature
 Verify that the release APK has been properly signed with Android APK Signature Scheme v2/v3 using `apksigner`:
 ```bash
-$ANDROID_HOME/build-tools/34.0.0/apksigner verify -v android/app/build/outputs/apk/release/app-release.apk
+$ANDROID_HOME/build-tools/35.0.0/apksigner verify -v android/app/build/outputs/apk/release/app-release.apk
 ```
 Expected output:
 ```text

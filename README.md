@@ -121,44 +121,61 @@ Detailed component guidelines and Jetpack Compose token mappings are documented 
 ## 6. Build & Setup Instructions
 
 ### 6.1 Prerequisites
-- **JDK**: OpenJDK 17 or Eclipse Temurin 17+
-- **Android SDK**: Build-Tools `35.0.0` or `34.0.0`, Platform `android-35`
-- **Gradle**: Managed automatically via the included `./gradlew` wrapper
 
-### 6.2 Running Unit Tests
-Validate data mappers, WebSocket message parsers, authentication logic, and domain state machines:
+- JDK 17 (Temurin/OpenJDK).
+- Android SDK Platform 35 and Build-Tools 35.0.0.
+- Android SDK Platform-Tools (`adb`) for device installation.
+- The repository's Gradle 8.9 wrapper is used automatically; do not install Gradle separately.
+
+Set `ANDROID_HOME` or `ANDROID_SDK_ROOT` to the Android SDK directory.
+
+### 6.2 Backend connection — no client bootstrap credentials
+
+The Android application is a client of the separately deployed AWARESPAN backend. It does not contain or require a SIP bootstrap administrator username/password, `DEVICE_API_KEY`, `PI_DEVICE_SECRET`, MQTT credentials, or node identity. The operator signs in with an account provisioned by the backend; the app sends the entered credentials to the backend over HTTPS and stores only the returned session tokens in Android Keystore-backed storage.
+
+The default API URL is `https://api.awarespan.bchbenjamin.in/`. To build against another backend, export `AWARESPAN_API_BASE_URL` before running Gradle:
+
 ```bash
-cd android
-./gradlew testDebugUnitTest
+export AWARESPAN_API_BASE_URL="https://your-backend.example/"
 ```
 
-### 6.3 Building Debug APK
-```bash
-cd android
-./gradlew assembleDebug
-```
-Output artifact: `android/app/build/outputs/apk/debug/app-debug.apk`
+The URL must end with `/`. The tracked `.env.example` documents this value; Gradle reads the environment variable or `-P AWARESPAN_API_BASE_URL=...`, not an arbitrary `.env` file.
 
-### 6.4 Building Release APK
-The release build enforces full ProGuard/R8 dead-code elimination, member obfuscation, and resource shrinking:
-```bash
-cd android
-./gradlew assembleRelease --no-daemon
-```
-Output artifact: `android/app/build/outputs/apk/release/app-release-unsigned.apk` (or `app-release.apk` if signing credentials are provided).
+The optional `SIP_BOOTSTRAP_ADMIN_USERNAME` and `SIP_BOOTSTRAP_ADMIN_PASSWORD` variables under `backend/.env.example` belong only to that separate backend server's one-time initial-admin provisioning. They are not read by the Android module and are never packaged into the APK. Configure and remove them on the backend host, not on a phone.
 
-### 6.5 Signing Configuration
-To generate a cryptographically signed release APK, supply the following environment variables:
-```bash
-export AWARESPAN_KEYSTORE_FILE="/path/to/release.jks"
-export AWARESPAN_KEYSTORE_PASSWORD="your-keystore-password"
-export AWARESPAN_KEY_ALIAS="your-key-alias"
-export AWARESPAN_KEY_PASSWORD="your-key-password"
+### 6.3 Test and build the debug APK from source
 
-./gradlew assembleRelease
+```bash
+git clone https://github.com/awarespan/android-app.git
+cd android-app/android
+./gradlew --no-daemon clean testDebugUnitTest assembleDebug
 ```
 
----
+The APK is written to `app/build/outputs/apk/debug/app-debug.apk` and unit-test results to `app/build/reports/tests/testDebugUnitTest/index.html`.
+
+Install it on a connected Android device with USB debugging enabled:
+
+```bash
+adb devices
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+Launch AWARESPAN and sign in using an existing backend operator account. A successful APK build does not create an operator account or prove that the deployed backend, database migrations, or physical edge nodes are healthy.
+
+### 6.4 Build a signed release APK
+
+Keep the release keystore outside the repository and supply the signing values through environment variables or CI secrets:
+
+```bash
+export AWARESPAN_KEYSTORE_FILE="/absolute/path/to/release.jks"
+export AWARESPAN_KEYSTORE_PASSWORD="<keystore-password>"
+export AWARESPAN_KEY_ALIAS="<key-alias>"
+export AWARESPAN_KEY_PASSWORD="<key-password>"
+
+./gradlew --no-daemon clean testDebugUnitTest assembleRelease
+```
+
+With all signing values configured, the signed artifact is `app/build/outputs/apk/release/app-release.apk`. Without them, the build produces an unsigned release APK. Never commit the keystore or credentials.
 
 ## 7. Security & Diagnostic Logging Architecture
 

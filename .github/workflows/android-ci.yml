@@ -5,11 +5,17 @@ on:
     branches: [ main ]
     paths:
       - 'android/**'
+      - 'docs/**'
+      - '.env.example'
+      - 'README.md'
       - '.github/workflows/android-ci.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'android/**'
+      - 'docs/**'
+      - '.env.example'
+      - 'README.md'
       - '.github/workflows/android-ci.yml'
 
 jobs:
