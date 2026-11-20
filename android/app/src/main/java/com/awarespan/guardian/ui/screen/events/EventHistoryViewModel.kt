@@ -46,9 +46,9 @@ class EventHistoryViewModel @Inject constructor(
                             responseTime,
                             "PI_DETERRENCE",
                             if (response.result?.startsWith("STARTED") == true)
-                                "Pi speaker warning started"
-                            else "Pi speaker warning not started",
-                            response.result ?: "The Pi recorded a deterrence response.",
+                                "Node speaker warning started"
+                            else "Node speaker warning not started",
+                            response.result ?: "The node recorded a deterrence response.",
                             isAlert = response.result?.startsWith("STARTED") == true,
                         )
                     }

@@ -164,7 +164,7 @@ fun IncidentDetailScreen(
                         }
                     }
 
-                    // Authenticated evidence fetch; the Pi stores the annotated inference frame.
+                    // Authenticated evidence fetch; the active node stores the annotated inference frame.
                     state.evidenceImage?.let { evidenceFile ->
                         AwarespanCard(modifier = Modifier.fillMaxWidth()) {
                             Column {

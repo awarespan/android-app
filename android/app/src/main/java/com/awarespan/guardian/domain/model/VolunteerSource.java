@@ -4,7 +4,7 @@ import java.time.Instant;
 
 /**
  * A volunteer device contributing camera, microphone, or sensor streams to an Edge Node.
- * Threat inference is executed on the Edge Node (Raspberry Pi); the Android console
+ * Threat inference is executed on the Edge Node (active Linux edge node); the Android console
  * receives and inspects the incident telemetry and source attribution.
  */
 public final class VolunteerSource {

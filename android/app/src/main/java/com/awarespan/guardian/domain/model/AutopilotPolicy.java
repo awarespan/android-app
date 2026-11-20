@@ -6,7 +6,7 @@ import java.util.Set;
 
 /**
  * Autonomous operation policy for a node (plan §18).
- * The Pi stores the last valid policy locally; this class mirrors that model client-side.
+ * The edge node stores the last valid policy locally; this class mirrors that model client-side.
  */
 public final class AutopilotPolicy {
     private final boolean enabled;
@@ -50,7 +50,7 @@ public final class AutopilotPolicy {
     public AutopilotState getSyncState() { return syncState; }
     public Instant getLastSyncTimestamp() { return lastSyncTimestamp; }
 
-    /** Mirrors the Pi-side authorization check in edge_server autopilot evaluation. */
+    /** Mirrors the node-side authorization check in edge_server autopilot evaluation. */
     public boolean isAuthorizedFor(Threat threat, double confidence) {
         return enabled
                 && allowedThreatTypes.contains(threat.getType())

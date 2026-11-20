@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
-/** A Raspberry Pi edge node in the mesh (plan §20 heartbeat logic). */
+/** A Linux edge node in the mesh (plan §20 heartbeat logic). */
 public final class Node {
     public static final Duration HEARTBEAT_INTERVAL = Duration.ofSeconds(30);
     public static final Duration DEGRADED_AFTER = Duration.ofSeconds(90);   // 1 missed cycle
