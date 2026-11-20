@@ -114,7 +114,7 @@ fun DashboardScreen(
             if (state.isServingCache || state.isOffline) {
                 item {
                     AwarespanOfflineBanner(
-                        message = "Connection unavailable — Showing cached data",
+                        message = if (state.isOffline) "Backend unreachable — Showing cached data" else "Backend reachable; some data could not sync — Showing cached data",
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }

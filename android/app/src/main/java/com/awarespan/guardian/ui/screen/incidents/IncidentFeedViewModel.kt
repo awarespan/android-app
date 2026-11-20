@@ -2,7 +2,7 @@ package com.awarespan.guardian.ui.screen.incidents
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.awarespan.guardian.data.network.NetworkMonitor
+import com.awarespan.guardian.data.remote.api.SipApiService
 import com.awarespan.guardian.domain.model.Incident
 import com.awarespan.guardian.domain.model.IncidentState
 import com.awarespan.guardian.domain.model.ThreatType
@@ -49,7 +49,7 @@ data class FeedUiState(
 @HiltViewModel
 class IncidentFeedViewModel @Inject constructor(
     private val incidentRepository: IncidentRepository,
-    private val networkMonitor: NetworkMonitor,
+    private val api: SipApiService,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(FeedUiState())
     val uiState: StateFlow<FeedUiState> = _uiState
@@ -62,7 +62,10 @@ class IncidentFeedViewModel @Inject constructor(
         val s = _uiState.value
         _uiState.value = s.copy(loading = true)
         viewModelScope.launch(Dispatchers.IO) {
-            val isConnected = networkMonitor.isCurrentlyConnected()
+            val isConnected = try {
+                val health = api.getBackendHealth().execute()
+                health.isSuccessful && health.body()?.get("status")?.toString() == "UP"
+            } catch (_: Exception) { false }
             try {
                 // Fetch up to 100 recent incidents (repository handles network fetch and Room fallback)
                 val rawIncidents = incidentRepository.getIncidents(

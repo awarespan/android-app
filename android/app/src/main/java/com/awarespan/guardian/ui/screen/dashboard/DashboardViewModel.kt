@@ -47,8 +47,6 @@ class DashboardViewModel @Inject constructor(
     fun refresh() {
         _uiState.value = _uiState.value.copy(loading = true, error = null)
         viewModelScope.launch(Dispatchers.IO) {
-            // Android's INTERNET capability is not a backend reachability check.
-            // A node may be reachable over a private LAN/VPN without general internet.
             var isOffline = false
             var isServingCache = false
             var incidents: List<Incident> = emptyList()
@@ -58,7 +56,6 @@ class DashboardViewModel @Inject constructor(
                 // Single source of truth for node states and heartbeats
                 nodes = nodeRepository.getNodes()
             } catch (e: Exception) {
-                isOffline = true
                 isServingCache = true
                 logger.warn("Dashboard", "Failed to load nodes", e)
             }
@@ -66,32 +63,17 @@ class DashboardViewModel @Inject constructor(
             try {
                 incidents = incidentRepository.getIncidents(0, 5, null, null, null, null, null)
             } catch (e: Exception) {
-                isOffline = true
                 isServingCache = true
                 logger.warn("Dashboard", "Failed to load incidents", e)
             }
 
-            // Probe the actual backend regardless of Android's generic INTERNET flag.
-            // The API may be reachable over LAN/VPN even when Android reports no internet.
+            // Public liveness is independent of authenticated dashboard/data endpoints.
             try {
-                val r = api.getDashboard().execute()
-                if (r.isSuccessful && r.body() != null) {
-                    val body = r.body()!!
-                    isOffline = false
-                    if (body.recentIncidents != null && body.recentIncidents.isNotEmpty()) {
-                        incidents = body.recentIncidents.mapNotNull {
-                            try { incidentMapper.toDomain(it) } catch (_: Exception) { null }
-                        }
-                    }
-                } else {
-                    isOffline = true
-                    isServingCache = true
-                    logger.warn("Dashboard", "Backend health probe returned HTTP ${r.code()}")
-                }
+                val health = api.getBackendHealth().execute()
+                isOffline = !health.isSuccessful || health.body()?.get("status")?.toString() != "UP"
             } catch (e: Exception) {
                 isOffline = true
-                isServingCache = true
-                logger.warn("Dashboard", "Backend health probe failed", e)
+                logger.warn("Dashboard", "Backend liveness probe failed", e)
             }
 
             val totalNodes = nodes.size

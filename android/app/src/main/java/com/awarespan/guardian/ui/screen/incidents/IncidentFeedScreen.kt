@@ -132,7 +132,7 @@ fun IncidentFeedScreen(
 
         if ((state.isServingCache || state.isOffline) && state.filteredIncidents.isNotEmpty()) {
             AwarespanOfflineBanner(
-                message = "Connection unavailable — Showing cached data",
+                message = "Backend unreachable — Showing cached data",
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
         }
@@ -145,7 +145,7 @@ fun IncidentFeedScreen(
             state.filteredIncidents.isEmpty() && (state.isServingCache || state.isOffline) -> {
                 AwarespanEmptyView(
                     title = "NO CACHED INCIDENTS",
-                    message = "Connection unavailable and no local incident records were found."
+                    message = "Backend unreachable and no local incident records were found."
                 )
             }
             state.filteredIncidents.isEmpty() -> {

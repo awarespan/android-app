@@ -1,5 +1,6 @@
 package com.awarespan.guardian.data.local.dao;
 
+import androidx.annotation.Nullable;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -36,8 +37,12 @@ public interface IncidentDao {
             "AND (:fromEpochMs IS NULL OR createdAtEpochMs >= :fromEpochMs) " +
             "AND (:toEpochMs IS NULL OR createdAtEpochMs <= :toEpochMs) " +
             "ORDER BY createdAtEpochMs DESC LIMIT :limit OFFSET :offset")
-    List<IncidentEntity> getCachedFiltered(String state, String threatType, String nodeId,
-                                           Long fromEpochMs, Long toEpochMs, int limit, int offset);
+    List<IncidentEntity> getCachedFiltered(@Nullable String state,
+                                           @Nullable String threatType,
+                                           @Nullable String nodeId,
+                                           @Nullable Long fromEpochMs,
+                                           @Nullable Long toEpochMs,
+                                           int limit, int offset);
 
     @Query("SELECT * FROM incidents ORDER BY createdAtEpochMs DESC LIMIT :limit")
     List<IncidentEntity> getRecent(int limit);

@@ -8,6 +8,7 @@ import com.awarespan.guardian.data.remote.dto.PageDto;
 import com.awarespan.guardian.data.remote.dto.VerificationRequest;
 
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -64,6 +65,9 @@ public interface SipApiService {
 
     @GET("api/v1/dashboard")
     Call<DashboardDto> getDashboard();
+
+    @GET("actuator/health")
+    Call<Map<String, Object>> getBackendHealth();
 
     @GET("api/v1/dataset/export")
     Call<okhttp3.ResponseBody> exportDataset(@Query("format") String format,
