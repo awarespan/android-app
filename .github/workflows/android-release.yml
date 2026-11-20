@@ -9,7 +9,7 @@ on:
       tag_name:
         description: 'Release Tag Name (e.g. v0.4.0)'
         required: true
-        default: 'v0.4.0'
+        default: 'v0.6.1'
 
 jobs:
   build-and-release:
@@ -64,11 +64,17 @@ jobs:
           cd android
           ./gradlew assembleRelease --no-daemon --stacktrace
 
+      - name: Assemble Installable Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
       - name: Generate Checksums & Package Artifacts
         id: package-artifacts
         run: |
           mkdir -p release-dist
           cp android/app/build/outputs/apk/release/*.apk release-dist/
+          cp android/app/build/outputs/apk/debug/*.apk release-dist/
           cd release-dist
           sha256sum *.apk > SHA256SUMS.txt
           cat SHA256SUMS.txt
@@ -78,8 +84,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
-          tag_name: ${{ github.ref_name || inputs.tag_name }}
-          name: AWARESPAN ${{ github.ref_name || inputs.tag_name }}
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
+          name: AWARESPAN ${{ inputs.tag_name || github.ref_name }}
           draft: false
           prerelease: false
           generate_release_notes: true

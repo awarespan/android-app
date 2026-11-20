@@ -1,6 +1,6 @@
 # AWARESPAN — Android Operational Console
 
-[![Release](https://img.shields.io/badge/Release-v0.5.0-FF4F2B?style=flat-square&labelColor=1A1A1A)](https://github.com/awarespan/android-app/releases/tag/v0.5.0)
+[![Release](https://img.shields.io/badge/Release-v0.6.1-FF4F2B?style=flat-square&labelColor=1A1A1A)](https://github.com/awarespan/android-app/releases/tag/v0.6.1)
 [![Build Status](https://img.shields.io/badge/Build-Passing-2ECC71?style=flat-square&labelColor=1A1A1A)](https://github.com/awarespan/android-app/actions)
 [![Android](https://img.shields.io/badge/Android-8.0%2B%20%28API%2026--35%29-3498DB?style=flat-square&labelColor=1A1A1A)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.24-7F52FF?style=flat-square&labelColor=1A1A1A)](https://kotlinlang.org)
@@ -20,8 +20,8 @@
 | **Brand Tagline** | *Awareness Without Boundaries.* |
 | **Application Label** | `AWARESPAN` |
 | **Application ID / Namespace** | `com.awarespan.guardian` |
-| **Version Name** | `0.5.0` |
-| **Version Code** | `6` |
+| **Version Name** | `0.6.1` |
+| **Version Code** | `8` |
 | **Minimum SDK** | API 26 (Android 8.0 Oreo) |
 | **Target / Compile SDK** | API 35 (Android 15) |
 | **Repository** | [`awarespan/android-app`](https://github.com/awarespan/android-app) |
