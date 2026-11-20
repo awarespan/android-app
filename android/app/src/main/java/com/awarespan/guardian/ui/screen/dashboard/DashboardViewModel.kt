@@ -3,7 +3,6 @@ package com.awarespan.guardian.ui.screen.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.awarespan.guardian.data.mapper.IncidentMapper
-import com.awarespan.guardian.data.network.NetworkMonitor
 import com.awarespan.guardian.data.remote.api.SipApiService
 import com.awarespan.guardian.data.remote.dto.DashboardDto
 import com.awarespan.guardian.domain.model.Incident
@@ -35,7 +34,6 @@ class DashboardViewModel @Inject constructor(
     private val api: SipApiService,
     private val incidentRepository: IncidentRepository,
     private val nodeRepository: NodeRepository,
-    private val networkMonitor: NetworkMonitor,
     private val incidentMapper: IncidentMapper,
     private val logger: com.awarespan.guardian.data.logging.DiagnosticLogger,
 ) : ViewModel() {
@@ -49,9 +47,10 @@ class DashboardViewModel @Inject constructor(
     fun refresh() {
         _uiState.value = _uiState.value.copy(loading = true, error = null)
         viewModelScope.launch(Dispatchers.IO) {
-            val hasNetwork = networkMonitor.isCurrentlyConnected()
-            var isOffline = !hasNetwork
-            var isServingCache = !hasNetwork
+            // Android's INTERNET capability is not a backend reachability check.
+            // A node may be reachable over a private LAN/VPN without general internet.
+            var isOffline = false
+            var isServingCache = false
             var incidents: List<Incident> = emptyList()
             var nodes: List<Node> = emptyList()
 
@@ -72,24 +71,27 @@ class DashboardViewModel @Inject constructor(
                 logger.warn("Dashboard", "Failed to load incidents", e)
             }
 
-            // Optional dashboard summary probe to verify API health
-            if (hasNetwork) {
-                try {
-                    val r = api.getDashboard().execute()
-                    if (r.isSuccessful && r.body() != null) {
-                        val body = r.body()!!
-                        if (body.recentIncidents != null && body.recentIncidents.isNotEmpty()) {
-                            incidents = body.recentIncidents.mapNotNull {
-                                try { incidentMapper.toDomain(it) } catch (_: Exception) { null }
-                            }
+            // Probe the actual backend regardless of Android's generic INTERNET flag.
+            // The API may be reachable over LAN/VPN even when Android reports no internet.
+            try {
+                val r = api.getDashboard().execute()
+                if (r.isSuccessful && r.body() != null) {
+                    val body = r.body()!!
+                    isOffline = false
+                    if (body.recentIncidents != null && body.recentIncidents.isNotEmpty()) {
+                        incidents = body.recentIncidents.mapNotNull {
+                            try { incidentMapper.toDomain(it) } catch (_: Exception) { null }
                         }
-                    } else {
-                        isServingCache = true
                     }
-                } catch (e: Exception) {
+                } else {
+                    isOffline = true
                     isServingCache = true
-                    logger.warn("Dashboard", "Dashboard probe failed", e)
+                    logger.warn("Dashboard", "Backend health probe returned HTTP ${r.code()}")
                 }
+            } catch (e: Exception) {
+                isOffline = true
+                isServingCache = true
+                logger.warn("Dashboard", "Backend health probe failed", e)
             }
 
             val totalNodes = nodes.size
