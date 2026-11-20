@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.awarespan.guardian.domain.model.HumanLabel
 import com.awarespan.guardian.domain.model.Incident
 import com.awarespan.guardian.domain.repository.IncidentRepository
+import com.awarespan.guardian.domain.repository.EvidenceRepository
+import com.awarespan.guardian.domain.model.EvidenceType
+import java.io.File
 import com.awarespan.guardian.domain.usecase.VerifyIncidentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -20,12 +23,14 @@ data class IncidentDetailUiState(
     val error: String? = null,
     val submitting: Boolean = false,
     val completed: Boolean = false,
+    val evidenceImage: File? = null,
 )
 
 @HiltViewModel
 class IncidentDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: IncidentRepository,
+    private val evidenceRepository: EvidenceRepository,
     private val verifyIncident: VerifyIncidentUseCase,
 ) : ViewModel() {
     private val incidentId: String = checkNotNull(savedStateHandle["incidentId"])
@@ -39,10 +44,13 @@ class IncidentDetailViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val incident = repository.getIncidentById(incidentId)
-                _uiState.value = if (incident == null) {
-                    IncidentDetailUiState(loading = false, error = "Incident not found")
+                if (incident == null) {
+                    _uiState.value = IncidentDetailUiState(loading = false, error = "Incident not found")
                 } else {
-                    IncidentDetailUiState(loading = false, incident = incident)
+                    val image = if (incident.evidenceBundle?.hasImage() == true) {
+                        runCatching { evidenceRepository.getEvidenceFile(incidentId, incident.evidenceBundle, EvidenceType.IMAGE) }.getOrNull()
+                    } else null
+                    _uiState.value = IncidentDetailUiState(loading = false, incident = incident, evidenceImage = image)
                 }
             } catch (e: Exception) {
                 _uiState.value = IncidentDetailUiState(
@@ -53,11 +61,18 @@ class IncidentDetailViewModel @Inject constructor(
         }
     }
 
-    fun verify(label: HumanLabel, notes: String) {
+    fun verify(label: HumanLabel, notes: String, deterrenceAction: String) {
+        val combinedNotes = buildString {
+            if (notes.isNotBlank()) append(notes.trim())
+            if (deterrenceAction.isNotBlank()) {
+                if (isNotEmpty()) append("\n")
+                append("Deterrence action taken: ").append(deterrenceAction.trim())
+            }
+        }
         _uiState.value = _uiState.value.copy(submitting = true, error = null)
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val result = verifyIncident.execute(incidentId, label, notes)
+                val result = verifyIncident.execute(incidentId, label, combinedNotes)
                 _uiState.value = if (result.isSuccess) {
                     IncidentDetailUiState(
                         loading = false,
